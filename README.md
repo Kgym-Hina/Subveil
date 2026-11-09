@@ -28,8 +28,8 @@ Apple TV ──(Home Assistant media player)──> Home Assistant ──HTTP :8
 | | **Subveil** (with Home Assistant) | **Subveil Standalone** |
 |---|---|---|
 | APK | `subveil-x.y.z.apk` | `subveil-standalone-x.y.z.apk` |
-| Playback sync | Automatic, from your Home Assistant media player | Manual clock on a web page: press play when the video starts, jump or set the time to correct drift |
-| Subtitle search | Automatic when a new title starts | Search by title on the web page |
+| Playback sync | Automatic, from your Home Assistant media player | Automatic from a paired Apple TV, or a manual clock on the web page |
+| Subtitle search | Automatic when a new title starts | Automatic when the Apple TV starts a new title, or search by title on the web page |
 | Controls | Home Assistant entities and actions | Web page served by the TV at `http://<tv-ip>:8765` |
 
 Both editions use different package names (`io.github.kgymhina.subveil` and `io.github.kgymhina.subveil.standalone`) but the same port, so install only one at a time.
@@ -39,7 +39,7 @@ Both editions use different package names (`io.github.kgymhina.subveil` and `io.
 1. Install `subveil-standalone-x.y.z.apk` and grant the overlay permission:
 
    ```sh
-   adb install subveil-standalone-0.2.0.apk
+   adb install subveil-standalone-0.3.0.apk
    adb shell appops set io.github.kgymhina.subveil.standalone SYSTEM_ALERT_WINDOW allow
    adb shell am start-foreground-service -n io.github.kgymhina.subveil.standalone/io.github.kgymhina.subveil.OverlayService
    ```
@@ -47,7 +47,12 @@ Both editions use different package names (`io.github.kgymhina.subveil` and `io.
    See [Grant the overlay permission](#grant-the-overlay-permission-required-once-per-tv) for details.
 2. Open `http://<tv-ip>:8765` on your phone or computer and press **Test overlay** to check that text appears on the TV.
 3. Under **Settings**, save your OpenSubtitles API key and languages (e.g. `zh-cn,en`).
-4. Search for the title, press **Use** on a result, then press **Play** when the video starts. Fix any drift with the jump buttons, **Set time** or the offset.
+4. If you watch on an Apple TV, press **Find Apple TVs** under **Apple TV**, press **Pair** and enter the PIN shown on the Apple TV. From then on Subveil follows what the Apple TV plays: it loads subtitles for each new title and keeps them in time.
+5. For other sources, search for the title, press **Use** on a result, then press **Play** when the video starts. Fix any drift with the jump buttons, **Set time** or the offset.
+
+Languages use OpenSubtitles codes. For Chinese, use `zh-cn` (Simplified), `zh-tw` (Traditional), `ze` (Chinese and English bilingual) or `zh-ca` (Cantonese).
+
+Apple TV support uses [pyatv](https://github.com/postlund/pyatv) running on the TV through [Chaquopy](https://chaquo.com/chaquopy/), which makes the standalone APK about 40 MB. The Apple TV and the TV must be on the same network.
 
 The rest of this document covers the Home Assistant edition.
 ## Grant the overlay permission (required, once per TV)
@@ -174,16 +179,19 @@ The app listens on port `8765` without authentication; keep it on your local net
 | POST | `/search` | `{"query": "Interstellar", "season": 1, "episode": 2}` (season and episode optional) |
 | POST | `/download` | `{"file_id": 123}`, downloads from OpenSubtitles and loads it |
 | POST | `/clock` | `{"action": "play" \| "pause" \| "toggle"}`, `{"action": "seek", "delta_ms": -10000}` or `{"action": "set", "position_ms": 600000}` |
+| GET | `/atv` | Apple TV pairing, connection and now-playing state (standalone) |
+| POST | `/atv/scan`, `/atv/pair/begin`, `/atv/pair/finish`, `/atv/forget`, `/atv/options` | Find, pair (`{"id", "address", "name"}`, then `{"pin"}`), unpair, `{"auto_search", "auto_sync"}` |
 
 ## Building from source
 
-The Android app has no Gradle build and no third-party dependencies.
+The Android app is built with Gradle. The Home Assistant edition has no third-party dependencies; the standalone edition bundles Python with pyatv through Chaquopy.
 
 ```sh
-# Needs JDK 17 and Android SDK build-tools 35 + platform 34
+# Needs JDK 17, the Android SDK and Python 3.11 (for the standalone edition)
 cd android
-./build.sh                        # Home Assistant edition, signed with a generated debug key
-VARIANT=standalone ./build.sh     # standalone edition
+./build.sh                        # both editions, signed with a generated debug key
+VARIANT=ha ./build.sh             # Home Assistant edition only
+SUBVEIL_BUILD_PYTHON=python3.11 VARIANT=standalone ./build.sh   # standalone edition only
 ./install.sh          # installs on the TV connected via adb
 ```
 

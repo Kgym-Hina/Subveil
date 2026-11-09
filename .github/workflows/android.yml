@@ -22,12 +22,17 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
+      - uses: actions/setup-python@v5
+        id: python
+        with:
+          python-version: "3.11"
       - uses: android-actions/setup-android@v3
         with:
-          packages: "build-tools;35.0.0 platforms;android-34"
+          packages: "platforms;android-34"
       - run: android/build.sh
         env:
           VARIANT: ${{ matrix.variant }}
+          SUBVEIL_BUILD_PYTHON: ${{ steps.python.outputs.python-path }}
       - uses: actions/upload-artifact@v4
         with:
           name: subveil-${{ matrix.variant }}-apk-debug

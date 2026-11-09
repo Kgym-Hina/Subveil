@@ -47,6 +47,7 @@ public class OverlayService extends Service {
     private WindowManager wm;
     private TextView view;
     private HttpServer server;
+    private AppleTvSync appleTv;
     private SharedPreferences prefs;
     private String lastText = null;
     private volatile String notice = "";
@@ -85,6 +86,24 @@ public class OverlayService extends Service {
         server = new HttpServer(PORT, this::handle);
         server.start();
         main.post(tick);
+
+        appleTv = new AppleTvSync(this, prefs, engine, new AppleTvSync.Subtitles() {
+            @Override
+            public String apiKey() throws Exception {
+                return OverlayService.this.apiKey();
+            }
+
+            @Override
+            public List<String> languages() {
+                return OverlayService.this.languages();
+            }
+
+            @Override
+            public void loaded(String name, List<Cue> cues) {
+                engine.load(name, cues);
+            }
+        });
+        appleTv.start();
     }
 
     private void addOverlay() {
@@ -200,6 +219,24 @@ public class OverlayService extends Service {
                 }
                 return HttpServer.Response.json(200, ok());
             }
+            case "GET /atv":
+                return HttpServer.Response.json(200, appleTv.status());
+            case "POST /atv/scan":
+                return HttpServer.Response.json(200, ok().put("devices", appleTv.scan()));
+            case "POST /atv/pair/begin": {
+                JSONObject o = r.json();
+                JSONObject res = appleTv.pairBegin(o.getString("id"), o.optString("address", ""), o.optString("name", ""));
+                return HttpServer.Response.json(200, ok().put("device_provides_pin", res.optBoolean("device_provides_pin", true)));
+            }
+            case "POST /atv/pair/finish":
+                appleTv.pairFinish(r.json().getString("pin"));
+                return HttpServer.Response.json(200, appleTv.status());
+            case "POST /atv/forget":
+                appleTv.forget();
+                return HttpServer.Response.json(200, appleTv.status());
+            case "POST /atv/options":
+                appleTv.setOptions(r.json());
+                return HttpServer.Response.json(200, appleTv.status());
             case "POST /test":
                 showNotice(getString(R.string.overlay_test), 5000);
                 return HttpServer.Response.json(200, ok().put("overlay", view != null && view.isAttachedToWindow()));
@@ -294,6 +331,7 @@ public class OverlayService extends Service {
     @Override
     public void onDestroy() {
         main.removeCallbacks(tick);
+        if (appleTv != null) appleTv.stop();
         if (server != null) server.shutdown();
         if (view != null && view.isAttachedToWindow()) wm.removeView(view);
         super.onDestroy();

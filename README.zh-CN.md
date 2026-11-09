@@ -28,8 +28,8 @@ Apple TV ──(Home Assistant 媒体播放器)──> Home Assistant ──HTTP
 | | **Subveil**（配合 Home Assistant） | **Subveil 独立版** |
 |---|---|---|
 | APK | `subveil-x.y.z.apk` | `subveil-standalone-x.y.z.apk` |
-| 播放同步 | 从 Home Assistant 媒体播放器自动同步 | 网页上的手动计时：视频开始时按开始，用跳转或设定时间修正偏差 |
-| 字幕搜索 | 开始播放新片时自动搜索 | 在网页上按片名搜索 |
+| 播放同步 | 从 Home Assistant 媒体播放器自动同步 | 从已配对的 Apple TV 自动同步，或使用网页上的手动计时 |
+| 字幕搜索 | 开始播放新片时自动搜索 | Apple TV 播放新片时自动搜索，或在网页上按片名搜索 |
 | 控制方式 | Home Assistant 实体和动作 | 电视提供的网页 `http://<电视IP>:8765` |
 
 两个版本的包名不同（`io.github.kgymhina.subveil` 和 `io.github.kgymhina.subveil.standalone`），但使用同一个端口，请只安装其中一个。
@@ -39,7 +39,7 @@ Apple TV ──(Home Assistant 媒体播放器)──> Home Assistant ──HTTP
 1. 安装 `subveil-standalone-x.y.z.apk` 并授予悬浮窗权限：
 
    ```sh
-   adb install subveil-standalone-0.2.0.apk
+   adb install subveil-standalone-0.3.0.apk
    adb shell appops set io.github.kgymhina.subveil.standalone SYSTEM_ALERT_WINDOW allow
    adb shell am start-foreground-service -n io.github.kgymhina.subveil.standalone/io.github.kgymhina.subveil.OverlayService
    ```
@@ -47,7 +47,12 @@ Apple TV ──(Home Assistant 媒体播放器)──> Home Assistant ──HTTP
    详见 [授予悬浮窗权限](#授予悬浮窗权限必需每台电视一次)。
 2. 在手机或电脑上打开 `http://<电视IP>:8765`，按 **测试悬浮窗显示** 确认电视上能看到文字。
 3. 在 **设置** 中保存 OpenSubtitles API Key 和语言（例如 `zh-cn,en`）。
-4. 搜索片名，在结果上按 **使用**，视频开始时按 **开始**。有偏差时用跳转按钮、**设为此时间** 或偏移来修正。
+4. 如果用 Apple TV 看片：在 **Apple TV** 区域按 **查找 Apple TV**，再按 **配对**，输入 Apple TV 屏幕上显示的 PIN。之后 Subveil 会跟随 Apple TV 的播放：每部新片自动加载字幕，并保持时间同步。
+5. 其它信号源：搜索片名，在结果上按 **使用**，视频开始时按 **开始**。有偏差时用跳转按钮、**设为此时间** 或偏移来修正。
+
+语言使用 OpenSubtitles 的代码。中文请写 `zh-cn`（简体）、`zh-tw`（繁体）、`ze`（中英双语）或 `zh-ca`（粤语）。
+
+Apple TV 支持通过 [Chaquopy](https://chaquo.com/chaquopy/) 在电视上运行 [pyatv](https://github.com/postlund/pyatv)，因此独立版 APK 约 40 MB。Apple TV 和电视需要在同一个局域网。
 
 本文其余部分介绍 Home Assistant 版本。
 ## 授予悬浮窗权限（必需，每台电视一次）
@@ -157,13 +162,14 @@ Home Assistant 提供播放器的 `media_position` 和 `media_position_updated_a
 
 ## 从源码构建
 
-Android App 不使用 Gradle，也没有第三方依赖。
+Android App 使用 Gradle 构建。Home Assistant 版没有第三方依赖；独立版通过 Chaquopy 打包了 Python 和 pyatv。
 
 ```sh
-# 需要 JDK 17 和 Android SDK build-tools 35 + platform 34
+# 需要 JDK 17、Android SDK，以及 Python 3.11（构建独立版时）
 cd android
-./build.sh                        # Home Assistant 版，使用自动生成的调试密钥签名
-VARIANT=standalone ./build.sh     # 独立版
+./build.sh                        # 构建两个版本，使用自动生成的调试密钥签名
+VARIANT=ha ./build.sh             # 只构建 Home Assistant 版
+SUBVEIL_BUILD_PYTHON=python3.11 VARIANT=standalone ./build.sh   # 只构建独立版
 ./install.sh          # 安装到通过 adb 连接的电视
 ```
 
