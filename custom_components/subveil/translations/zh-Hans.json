@@ -1,0 +1,155 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Subveil",
+        "description": "连接 Android TV 上的 Subveil App。",
+        "data": {
+          "host": "电视 IP 地址",
+          "port": "端口",
+          "media_player": "媒体播放器",
+          "opensubtitles_api_key": "OpenSubtitles API Key",
+          "opensubtitles_username": "OpenSubtitles 用户名",
+          "opensubtitles_password": "OpenSubtitles 密码",
+          "languages": "字幕语言",
+          "auto_search": "自动搜索"
+        },
+        "data_description": {
+          "media_player": "字幕跟随其播放进度的播放器，例如 Apple TV。",
+          "opensubtitles_api_key": "在 opensubtitles.com 的 API consumers 页面创建。",
+          "opensubtitles_username": "可选。API Key 不允许匿名下载时需要填写。",
+          "languages": "逗号分隔的语言代码，按优先级排序，例如 zh-cn,en。",
+          "auto_search": "开始播放新片时自动搜索并加载最匹配的字幕。"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "无法连接 Subveil App，请确认 App 正在运行且 IP 地址正确。"
+    },
+    "abort": {
+      "already_configured": "这台电视已经配置过了。"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "media_player": "媒体播放器",
+          "opensubtitles_api_key": "OpenSubtitles API Key",
+          "opensubtitles_username": "OpenSubtitles 用户名",
+          "opensubtitles_password": "OpenSubtitles 密码",
+          "languages": "字幕语言",
+          "auto_search": "自动搜索"
+        },
+        "data_description": {
+          "media_player": "字幕跟随其播放进度的播放器，例如 Apple TV。",
+          "opensubtitles_api_key": "在 opensubtitles.com 的 API consumers 页面创建。",
+          "opensubtitles_username": "可选。API Key 不允许匿名下载时需要填写。",
+          "languages": "逗号分隔的语言代码，按优先级排序，例如 zh-cn,en。",
+          "auto_search": "开始播放新片时自动搜索并加载最匹配的字幕。"
+        }
+      }
+    }
+  },
+  "entity": {
+    "button": {
+      "research": {
+        "name": "重新搜索"
+      },
+      "offset_earlier": {
+        "name": "字幕提前 {seconds} 秒"
+      },
+      "offset_later": {
+        "name": "字幕延后 {seconds} 秒"
+      }
+    },
+    "number": {
+      "offset": {
+        "name": "字幕偏移"
+      }
+    },
+    "select": {
+      "subtitle": {
+        "name": "字幕"
+      }
+    },
+    "sensor": {
+      "status": {
+        "name": "状态",
+        "state": {
+          "idle": "空闲",
+          "playing": "正在播放",
+          "searching": "正在搜索",
+          "found": "已找到字幕",
+          "not_found": "没有找到字幕",
+          "search_failed": "搜索失败",
+          "downloading": "正在下载",
+          "download_failed": "下载失败",
+          "loaded": "已加载",
+          "off": "已关闭",
+          "tv_offline": "电视离线",
+          "invalid_subtitle": "字幕文件无效",
+          "no_api_key": "未配置 OpenSubtitles API Key",
+          "no_title": "没有可搜索的片名"
+        }
+      }
+    },
+    "text": {
+      "search_query": {
+        "name": "搜索关键词"
+      }
+    }
+  },
+  "services": {
+    "upload_subtitle": {
+      "name": "上传字幕",
+      "description": "加载字幕文件（SRT、VTT 或 ASS）并显示在电视上。",
+      "fields": {
+        "config_entry_id": {
+          "name": "条目",
+          "description": "配置了多台电视时才需要。"
+        },
+        "path": {
+          "name": "路径",
+          "description": "允许目录中的文件路径，例如 /media 或 /config/www。"
+        },
+        "content": {
+          "name": "内容",
+          "description": "字幕文本，未提供路径时使用。"
+        },
+        "filename": {
+          "name": "文件名",
+          "description": "在字幕列表中显示的名称。"
+        }
+      }
+    },
+    "search": {
+      "name": "搜索字幕",
+      "description": "在 OpenSubtitles 搜索；不填关键词时使用当前片名。",
+      "fields": {
+        "config_entry_id": {
+          "name": "条目",
+          "description": "配置了多台电视时才需要。"
+        },
+        "query": {
+          "name": "关键词",
+          "description": "要搜索的片名。"
+        }
+      }
+    },
+    "set_text_size": {
+      "name": "设置字号",
+      "description": "设置电视上字幕的字号。",
+      "fields": {
+        "config_entry_id": {
+          "name": "条目",
+          "description": "配置了多台电视时才需要。"
+        },
+        "size": {
+          "name": "字号",
+          "description": "1080p 屏幕上的文字高度（像素）。"
+        }
+      }
+    }
+  }
+}

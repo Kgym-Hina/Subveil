@@ -1,0 +1,15 @@
+# Android
+android/build/
+*.keystore
+*.jks
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/

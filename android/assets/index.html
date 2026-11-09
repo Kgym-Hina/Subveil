@@ -1,0 +1,64 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Subveil</title>
+<style>
+body{font-family:-apple-system,"Segoe UI",sans-serif;max-width:560px;margin:40px auto;padding:0 16px;color:#222}
+h2{color:#4b2bd6}
+button{margin:4px 4px 4px 0;padding:6px 12px}
+pre{background:#f4f4f4;padding:12px;white-space:pre-wrap}
+</style>
+</head>
+<body>
+<h2>Subveil</h2>
+<p><input type="file" id="file" accept=".srt,.vtt,.ass,.ssa"></p>
+<p><button id="upload"></button><button id="clear"></button></p>
+<p><span id="offsetLabel"></span>
+<button data-nudge="-1000">-1s</button><button data-nudge="-100">-0.1s</button>
+<button data-nudge="100">+0.1s</button><button data-nudge="1000">+1s</button></p>
+<p><span id="sizeLabel"></span> <input id="size" type="number" min="12" max="200" style="width:5em"> <button id="apply"></button></p>
+<p id="note"></p>
+<pre id="status"></pre>
+<script>
+const T = {
+  en: {upload: "Upload and show", clear: "Clear", offsetLabel: "Offset:", sizeLabel: "Text size (px):",
+       apply: "Apply", note: "Playback position is synced by Home Assistant. Picking a subtitle in Home Assistant replaces one uploaded here.",
+       ok: "Loaded", fail: "Failed: "},
+  zh: {upload: "上传并显示", clear: "清除字幕", offsetLabel: "偏移：", sizeLabel: "字号（像素）：",
+       apply: "应用", note: "播放进度由 Home Assistant 同步；在 Home Assistant 中选择字幕会替换这里上传的字幕。",
+       ok: "已加载", fail: "失败："}
+};
+const t = T[navigator.language.toLowerCase().startsWith("zh") ? "zh" : "en"];
+for (const id of ["upload", "clear", "offsetLabel", "sizeLabel", "apply", "note"]) document.getElementById(id).textContent = t[id];
+
+const $ = (id) => document.getElementById(id);
+async function status() { return (await fetch("/status")).json(); }
+async function refresh() {
+  const s = await status();
+  $("status").textContent = JSON.stringify(s, null, 2);
+  if (!$("size").value) $("size").value = s.text_size_px;
+}
+async function post(path, body) { await fetch(path, {method: "POST", body: JSON.stringify(body)}); refresh(); }
+
+$("upload").onclick = async () => {
+  const f = $("file").files[0];
+  if (!f) return;
+  const r = await fetch("/subtitle?name=" + encodeURIComponent(f.name), {method: "POST", body: await f.arrayBuffer()});
+  alert(r.ok ? t.ok : t.fail + await r.text());
+  refresh();
+};
+$("clear").onclick = () => post("/clear", {});
+$("apply").onclick = () => post("/style", {text_size_px: +$("size").value});
+for (const b of document.querySelectorAll("[data-nudge]")) {
+  b.onclick = async () => {
+    const s = await status();
+    post("/offset?notify=1", {offset_ms: s.offset_ms + Number(b.dataset.nudge)});
+  };
+}
+refresh();
+setInterval(refresh, 2000);
+</script>
+</body>
+</html>

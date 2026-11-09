@@ -1,0 +1,155 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Subveil",
+        "description": "Connect to the Subveil app on your Android TV.",
+        "data": {
+          "host": "TV IP address",
+          "port": "Port",
+          "media_player": "Media player",
+          "opensubtitles_api_key": "OpenSubtitles API key",
+          "opensubtitles_username": "OpenSubtitles username",
+          "opensubtitles_password": "OpenSubtitles password",
+          "languages": "Subtitle languages",
+          "auto_search": "Search automatically"
+        },
+        "data_description": {
+          "media_player": "The player whose playback the subtitles follow, e.g. an Apple TV.",
+          "opensubtitles_api_key": "Create one at opensubtitles.com under API consumers.",
+          "opensubtitles_username": "Optional. Needed if your API key does not allow anonymous downloads.",
+          "languages": "Comma-separated language codes in order of preference, e.g. zh-cn,en.",
+          "auto_search": "Search and load the best match when a new title starts playing."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot reach the Subveil app. Make sure it is running and the IP address is correct."
+    },
+    "abort": {
+      "already_configured": "This TV is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "media_player": "Media player",
+          "opensubtitles_api_key": "OpenSubtitles API key",
+          "opensubtitles_username": "OpenSubtitles username",
+          "opensubtitles_password": "OpenSubtitles password",
+          "languages": "Subtitle languages",
+          "auto_search": "Search automatically"
+        },
+        "data_description": {
+          "media_player": "The player whose playback the subtitles follow, e.g. an Apple TV.",
+          "opensubtitles_api_key": "Create one at opensubtitles.com under API consumers.",
+          "opensubtitles_username": "Optional. Needed if your API key does not allow anonymous downloads.",
+          "languages": "Comma-separated language codes in order of preference, e.g. zh-cn,en.",
+          "auto_search": "Search and load the best match when a new title starts playing."
+        }
+      }
+    }
+  },
+  "entity": {
+    "button": {
+      "research": {
+        "name": "Search again"
+      },
+      "offset_earlier": {
+        "name": "Subtitles {seconds} s earlier"
+      },
+      "offset_later": {
+        "name": "Subtitles {seconds} s later"
+      }
+    },
+    "number": {
+      "offset": {
+        "name": "Subtitle offset"
+      }
+    },
+    "select": {
+      "subtitle": {
+        "name": "Subtitle"
+      }
+    },
+    "sensor": {
+      "status": {
+        "name": "Status",
+        "state": {
+          "idle": "Idle",
+          "playing": "Playing",
+          "searching": "Searching",
+          "found": "Subtitles found",
+          "not_found": "No subtitles found",
+          "search_failed": "Search failed",
+          "downloading": "Downloading",
+          "download_failed": "Download failed",
+          "loaded": "Loaded",
+          "off": "Off",
+          "tv_offline": "TV offline",
+          "invalid_subtitle": "Invalid subtitle file",
+          "no_api_key": "No OpenSubtitles API key",
+          "no_title": "No title to search"
+        }
+      }
+    },
+    "text": {
+      "search_query": {
+        "name": "Search query"
+      }
+    }
+  },
+  "services": {
+    "upload_subtitle": {
+      "name": "Upload subtitle",
+      "description": "Load a subtitle file (SRT, VTT or ASS) and show it on the TV.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Entry",
+          "description": "Only needed when several TVs are configured."
+        },
+        "path": {
+          "name": "Path",
+          "description": "File path inside an allowed directory such as /media or /config/www."
+        },
+        "content": {
+          "name": "Content",
+          "description": "Subtitle text, used when no path is given."
+        },
+        "filename": {
+          "name": "File name",
+          "description": "Name shown in the subtitle list."
+        }
+      }
+    },
+    "search": {
+      "name": "Search subtitles",
+      "description": "Search OpenSubtitles. Without a query, the current title is used.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Entry",
+          "description": "Only needed when several TVs are configured."
+        },
+        "query": {
+          "name": "Query",
+          "description": "Title to search for."
+        }
+      }
+    },
+    "set_text_size": {
+      "name": "Set text size",
+      "description": "Set the subtitle text size on the TV.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Entry",
+          "description": "Only needed when several TVs are configured."
+        },
+        "size": {
+          "name": "Size",
+          "description": "Text height in pixels on a 1080p screen."
+        }
+      }
+    }
+  }
+}

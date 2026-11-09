@@ -1,0 +1,26 @@
+{
+  "entity": {
+    "button": {
+      "research": { "default": "mdi:refresh" },
+      "offset_earlier": { "default": "mdi:rewind" },
+      "offset_later": { "default": "mdi:fast-forward" }
+    },
+    "number": {
+      "offset": { "default": "mdi:timer-sync-outline" }
+    },
+    "select": {
+      "subtitle": { "default": "mdi:subtitles" }
+    },
+    "sensor": {
+      "status": { "default": "mdi:information-outline" }
+    },
+    "text": {
+      "search_query": { "default": "mdi:magnify" }
+    }
+  },
+  "services": {
+    "upload_subtitle": { "service": "mdi:upload" },
+    "search": { "service": "mdi:magnify" },
+    "set_text_size": { "service": "mdi:format-size" }
+  }
+}

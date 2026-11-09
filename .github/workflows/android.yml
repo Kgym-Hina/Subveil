@@ -1,0 +1,29 @@
+name: Android
+
+on:
+  push:
+    paths: ["android/**", ".github/workflows/android.yml"]
+  pull_request:
+    paths: ["android/**", ".github/workflows/android.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: "build-tools;35.0.0 platforms;android-34"
+      - run: android/build.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: subveil-apk-debug
+          path: android/build/subveil-*.apk

@@ -1,0 +1,44 @@
+upload_subtitle:
+  fields:
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: subveil
+    path:
+      example: /media/subtitles/Interstellar.srt
+      selector:
+        text:
+    content:
+      selector:
+        text:
+          multiline: true
+    filename:
+      example: Interstellar.srt
+      selector:
+        text:
+
+search:
+  fields:
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: subveil
+    query:
+      example: Interstellar
+      selector:
+        text:
+
+set_text_size:
+  fields:
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: subveil
+    size:
+      required: true
+      example: 40
+      selector:
+        number:
+          min: 12
+          max: 200
+          unit_of_measurement: px

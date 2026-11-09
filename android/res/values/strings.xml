@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Subveil</string>
+    <string name="channel_name">Subtitle overlay</string>
+    <string name="service_running">Subveil is running</string>
+    <string name="main_running">The service is running. Subtitles appear about 3 seconds after you leave this screen.</string>
+    <string name="main_no_permission">Overlay permission is missing. Grant it over ADB:\nadb shell appops set %1$s SYSTEM_ALERT_WINDOW allow</string>
+    <string name="main_address">Upload page / Home Assistant address:</string>
+    <string name="offset_notice">Subtitle offset %1$+.1f s</string>
+</resources>
