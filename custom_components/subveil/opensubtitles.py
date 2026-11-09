@@ -9,7 +9,7 @@ from typing import Any
 import aiohttp
 
 API_BASE = "https://api.opensubtitles.com/api/v1"
-USER_AGENT = "Subveil/0.1.0 (+https://github.com/Kgym-Hina/Subveil)"
+USER_AGENT = "Subveil/0.2.0 (+https://github.com/Kgym-Hina/Subveil)"
 TIMEOUT = aiohttp.ClientTimeout(total=20)
 
 

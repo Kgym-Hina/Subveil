@@ -23,6 +23,32 @@ Apple TV ──(Home Assistant media player)──> Home Assistant ──HTTP :8
 - Upload your own SRT, WebVTT or ASS/SSA files from Home Assistant or from a web page served by the TV app. UTF-8, UTF-16 and GBK files are supported.
 - Starts at boot and recovers automatically when the TV app restarts.
 
+## Two editions
+
+| | **Subveil** (with Home Assistant) | **Subveil Standalone** |
+|---|---|---|
+| APK | `subveil-x.y.z.apk` | `subveil-standalone-x.y.z.apk` |
+| Playback sync | Automatic, from your Home Assistant media player | Manual clock on a web page: press play when the video starts, jump or set the time to correct drift |
+| Subtitle search | Automatic when a new title starts | Search by title on the web page |
+| Controls | Home Assistant entities and actions | Web page served by the TV at `http://<tv-ip>:8765` |
+
+Both editions use different package names (`io.github.kgymhina.subveil` and `io.github.kgymhina.subveil.standalone`) but the same port, so install only one at a time.
+
+### Standalone quick start
+
+1. Install `subveil-standalone-x.y.z.apk` and grant the overlay permission:
+
+   ```sh
+   adb install subveil-standalone-0.2.0.apk
+   adb shell appops set io.github.kgymhina.subveil.standalone SYSTEM_ALERT_WINDOW allow
+   adb shell am start-foreground-service -n io.github.kgymhina.subveil.standalone/io.github.kgymhina.subveil.OverlayService
+   ```
+
+2. Open `http://<tv-ip>:8765` on your phone or computer.
+3. Under **Settings**, save your OpenSubtitles API key and languages (e.g. `zh-cn,en`).
+4. Search for the title, press **Use** on a result, then press **Play** when the video starts. Fix any drift with the jump buttons, **Set time** or the offset.
+
+The rest of this document covers the Home Assistant edition.
 ## Requirements
 
 - An Android TV with Android 8.0 or newer and ADB debugging enabled (used once, to grant the overlay permission).
@@ -113,6 +139,10 @@ The app listens on port `8765` without authentication; keep it on your local net
 | POST | `/visible` | `{"visible": false}` |
 | POST | `/style` | `{"text_size_px": 40}` |
 | POST | `/clear` | |
+| GET / POST | `/settings` | `{"api_key": "...", "languages": "zh-cn,en"}` |
+| POST | `/search` | `{"query": "Interstellar", "season": 1, "episode": 2}` (season and episode optional) |
+| POST | `/download` | `{"file_id": 123}`, downloads from OpenSubtitles and loads it |
+| POST | `/clock` | `{"action": "play" \| "pause" \| "toggle"}`, `{"action": "seek", "delta_ms": -10000}` or `{"action": "set", "position_ms": 600000}` |
 
 ## Building from source
 
@@ -121,7 +151,8 @@ The Android app has no Gradle build and no third-party dependencies.
 ```sh
 # Needs JDK 17 and Android SDK build-tools 35 + platform 34
 cd android
-./build.sh            # signs with a generated debug key
+./build.sh                        # Home Assistant edition, signed with a generated debug key
+VARIANT=standalone ./build.sh     # standalone edition
 ./install.sh          # installs on the TV connected via adb
 ```
 

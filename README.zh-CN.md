@@ -23,6 +23,32 @@ Apple TV ──(Home Assistant 媒体播放器)──> Home Assistant ──HTTP
 - 可以从 Home Assistant 或电视 App 提供的网页上传自己的 SRT、WebVTT、ASS/SSA 字幕，支持 UTF-8、UTF-16 和 GBK 编码。
 - 开机自动启动；电视 App 重启后自动恢复字幕。
 
+## 两个版本
+
+| | **Subveil**（配合 Home Assistant） | **Subveil 独立版** |
+|---|---|---|
+| APK | `subveil-x.y.z.apk` | `subveil-standalone-x.y.z.apk` |
+| 播放同步 | 从 Home Assistant 媒体播放器自动同步 | 网页上的手动计时：视频开始时按开始，用跳转或设定时间修正偏差 |
+| 字幕搜索 | 开始播放新片时自动搜索 | 在网页上按片名搜索 |
+| 控制方式 | Home Assistant 实体和动作 | 电视提供的网页 `http://<电视IP>:8765` |
+
+两个版本的包名不同（`io.github.kgymhina.subveil` 和 `io.github.kgymhina.subveil.standalone`），但使用同一个端口，请只安装其中一个。
+
+### 独立版快速上手
+
+1. 安装 `subveil-standalone-x.y.z.apk` 并授予悬浮窗权限：
+
+   ```sh
+   adb install subveil-standalone-0.2.0.apk
+   adb shell appops set io.github.kgymhina.subveil.standalone SYSTEM_ALERT_WINDOW allow
+   adb shell am start-foreground-service -n io.github.kgymhina.subveil.standalone/io.github.kgymhina.subveil.OverlayService
+   ```
+
+2. 在手机或电脑上打开 `http://<电视IP>:8765`。
+3. 在 **设置** 中保存 OpenSubtitles API Key 和语言（例如 `zh-cn,en`）。
+4. 搜索片名，在结果上按 **使用**，视频开始时按 **开始**。有偏差时用跳转按钮、**设为此时间** 或偏移来修正。
+
+本文其余部分介绍 Home Assistant 版本。
 ## 要求
 
 - Android 8.0 及以上的 Android TV，并开启 ADB 调试（只用于一次性授予悬浮窗权限）。
@@ -106,7 +132,8 @@ Android App 不使用 Gradle，也没有第三方依赖。
 ```sh
 # 需要 JDK 17 和 Android SDK build-tools 35 + platform 34
 cd android
-./build.sh            # 使用自动生成的调试密钥签名
+./build.sh                        # Home Assistant 版，使用自动生成的调试密钥签名
+VARIANT=standalone ./build.sh     # 独立版
 ./install.sh          # 安装到通过 adb 连接的电视
 ```
 

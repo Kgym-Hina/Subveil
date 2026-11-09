@@ -21,11 +21,14 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class OverlayService extends Service {
     static final String TAG = "Subveil";
@@ -140,6 +143,8 @@ public class OverlayService extends Service {
                 JSONObject o = engine.status();
                 o.put("ok", true);
                 o.put("version", 1);
+                o.put("app_version", BuildInfo.VERSION);
+                o.put("standalone", BuildInfo.STANDALONE);
                 o.put("overlay", view != null);
                 o.put("text_size_px", prefs.getFloat("text_px", DEFAULT_TEXT_PX));
                 return HttpServer.Response.json(200, o);
@@ -151,6 +156,44 @@ public class OverlayService extends Service {
                 engine.load(name, cues);
                 Log.i(TAG, "loaded " + name + " (" + cues.size() + " cues)");
                 return HttpServer.Response.json(200, ok().put("cues", cues.size()));
+            }
+            case "GET /settings":
+                return HttpServer.Response.json(200, settingsJson());
+            case "POST /settings": {
+                JSONObject o = r.json();
+                SharedPreferences.Editor e = prefs.edit();
+                if (o.has("api_key")) e.putString("os_api_key", o.getString("api_key").trim());
+                if (o.has("languages")) e.putString("languages", o.getString("languages").trim());
+                e.apply();
+                return HttpServer.Response.json(200, settingsJson());
+            }
+            case "POST /search": {
+                JSONObject o = r.json();
+                String query = o.optString("query", "").trim();
+                if (query.isEmpty()) return HttpServer.Response.error(400, "query is required");
+                Integer season = o.has("season") ? o.getInt("season") : null;
+                Integer episode = o.has("episode") ? o.getInt("episode") : null;
+                JSONArray results = OpenSubtitles.search(apiKey(), query, languages(), season, episode);
+                return HttpServer.Response.json(200, ok().put("results", results));
+            }
+            case "POST /download": {
+                OpenSubtitles.Download d = OpenSubtitles.download(apiKey(), r.json().getLong("file_id"));
+                List<Cue> cues = SubtitleParser.parse(SubtitleParser.decode(d.data));
+                if (cues.isEmpty()) return HttpServer.Response.error(400, "no cues found in " + d.name);
+                engine.load(d.name, cues);
+                return HttpServer.Response.json(200, ok().put("name", d.name).put("cues", cues.size()));
+            }
+            case "POST /clock": {
+                JSONObject o = r.json();
+                switch (o.getString("action")) {
+                    case "play": engine.setPlaying(true); break;
+                    case "pause": engine.setPlaying(false); break;
+                    case "toggle": engine.setPlaying(!engine.isPlaying()); break;
+                    case "seek": engine.seekBy(o.getLong("delta_ms")); break;
+                    case "set": engine.seekTo(o.getLong("position_ms")); break;
+                    default: return HttpServer.Response.error(400, "unknown action");
+                }
+                return HttpServer.Response.json(200, ok());
             }
             case "POST /clear":
                 engine.clear();
@@ -185,6 +228,28 @@ public class OverlayService extends Service {
             default:
                 return HttpServer.Response.error(404, "not found: " + route);
         }
+    }
+
+    private String apiKey() throws Exception {
+        String key = prefs.getString("os_api_key", "");
+        if (key.isEmpty()) throw new IllegalStateException("OpenSubtitles API key is not set");
+        return key;
+    }
+
+    private List<String> languages() {
+        List<String> out = new ArrayList<>();
+        for (String l : prefs.getString("languages", "en").split(",")) {
+            if (!l.trim().isEmpty()) out.add(l.trim().toLowerCase(Locale.ROOT));
+        }
+        return out;
+    }
+
+    private JSONObject settingsJson() throws Exception {
+        String key = prefs.getString("os_api_key", "");
+        return ok()
+                .put("api_key_set", !key.isEmpty())
+                .put("api_key_hint", key.length() > 4 ? "…" + key.substring(key.length() - 4) : "")
+                .put("languages", prefs.getString("languages", "en"));
     }
 
     private static JSONObject ok() throws Exception {

@@ -1,0 +1,276 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Subveil</title>
+<style>
+:root{--accent:#5b34e6;--bg:#f6f5fb;--card:#fff;--muted:#6b6880}
+*{box-sizing:border-box}
+body{font-family:-apple-system,"Segoe UI",Roboto,sans-serif;margin:0;background:var(--bg);color:#1d1b29}
+header{background:linear-gradient(120deg,#2a17a6,#7a2cf0);color:#fff;padding:20px 16px}
+header h1{margin:0;font-size:22px}
+header p{margin:4px 0 0;opacity:.85;font-size:14px}
+main{max-width:720px;margin:0 auto;padding:16px}
+section{background:var(--card);border-radius:12px;padding:16px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+h2{font-size:16px;margin:0 0 12px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
+input[type=text],input[type=password],input[type=number]{padding:8px 10px;border:1px solid #d6d3e4;border-radius:8px;font-size:15px}
+input.grow{flex:1;min-width:160px}
+button{padding:8px 14px;border:0;border-radius:8px;background:#ece8fd;color:#2a17a6;font-size:15px;cursor:pointer}
+button.primary{background:var(--accent);color:#fff}
+button:disabled{opacity:.5}
+.clock{font-size:44px;font-variant-numeric:tabular-nums;font-weight:600;letter-spacing:1px}
+.muted{color:var(--muted);font-size:13px}
+.now{min-height:2.6em;padding:10px;border-radius:8px;background:#1d1b29;color:#fff;text-align:center;white-space:pre-wrap}
+ul{list-style:none;padding:0;margin:0}
+li{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid #eee}
+li .label{flex:1;font-size:14px;word-break:break-all}
+.tag{display:inline-block;font-size:12px;padding:1px 6px;border-radius:6px;background:#ece8fd;color:#2a17a6;margin-right:4px}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#1d1b29;color:#fff;padding:10px 16px;border-radius:8px;display:none}
+</style>
+</head>
+<body>
+<header>
+  <h1>Subveil</h1>
+  <p data-t="tagline"></p>
+</header>
+<main>
+  <section>
+    <h2 data-t="playback"></h2>
+    <div class="clock" id="clock">0:00:00</div>
+    <div class="row">
+      <button class="primary" id="toggle"></button>
+      <button data-seek="-10000">-10s</button><button data-seek="-1000">-1s</button>
+      <button data-seek="1000">+1s</button><button data-seek="10000">+10s</button>
+    </div>
+    <div class="row">
+      <input type="text" id="setTime" placeholder="1:02:30" style="width:9em">
+      <button id="setBtn" data-t="setTime"></button>
+    </div>
+    <p class="muted" data-t="clockHint"></p>
+    <div class="now" id="now"></div>
+    <p class="muted" id="loaded"></p>
+  </section>
+
+  <section>
+    <h2 data-t="find"></h2>
+    <div class="row">
+      <input type="text" id="query" class="grow" data-ph="queryPh">
+      <input type="number" id="season" data-ph="season" style="width:6em" min="1">
+      <input type="number" id="episode" data-ph="episode" style="width:6em" min="1">
+      <button class="primary" id="searchBtn" data-t="search"></button>
+    </div>
+    <p class="muted" id="searchInfo"></p>
+    <ul id="results"></ul>
+  </section>
+
+  <section>
+    <h2 data-t="timing"></h2>
+    <div class="row">
+      <span data-t="offset"></span> <strong id="offset">0.0 s</strong>
+    </div>
+    <div class="row">
+      <button data-offset="-1000">-1s</button><button data-offset="-100">-0.1s</button>
+      <button data-offset="100">+0.1s</button><button data-offset="1000">+1s</button>
+      <button data-offset="reset" data-t="reset"></button>
+    </div>
+    <p class="muted" data-t="offsetHint"></p>
+    <div class="row">
+      <span data-t="size"></span>
+      <input type="number" id="size" min="12" max="200" style="width:6em">
+      <button id="sizeBtn" data-t="apply"></button>
+    </div>
+  </section>
+
+  <section>
+    <h2 data-t="upload"></h2>
+    <div class="row">
+      <input type="file" id="file" accept=".srt,.vtt,.ass,.ssa">
+      <button id="uploadBtn" data-t="uploadBtn"></button>
+      <button id="clearBtn" data-t="clear"></button>
+    </div>
+  </section>
+
+  <section>
+    <h2 data-t="settings"></h2>
+    <div class="row">
+      <input type="password" id="apiKey" class="grow" data-ph="apiKey" autocomplete="off">
+    </div>
+    <div class="row">
+      <input type="text" id="langs" class="grow" data-ph="langs">
+      <button class="primary" id="saveBtn" data-t="save"></button>
+    </div>
+    <p class="muted" data-t="settingsHint"></p>
+  </section>
+  <p class="muted" id="version"></p>
+</main>
+<div id="toast"></div>
+<script>
+const T = {
+  en: {
+    tagline: "Subtitles over any input. Control everything from this page.",
+    playback: "Playback clock", play: "▶ Play", pause: "❚❚ Pause", setTime: "Set time",
+    clockHint: "Press Play when the video starts. If it drifts, set the time to what your player shows.",
+    find: "Find subtitles", queryPh: "Movie or series title", season: "Season", episode: "Episode",
+    search: "Search", searching: "Searching…", noResults: "No subtitles found.", use: "Use",
+    results: (n) => n + " results", loading: "Downloading…",
+    timing: "Timing and look", offset: "Offset:", reset: "Reset",
+    offsetHint: "Positive values show subtitles later.", size: "Text size (px):", apply: "Apply",
+    upload: "Your own file", uploadBtn: "Upload and show", clear: "Clear subtitles",
+    settings: "Settings", apiKey: "OpenSubtitles API key", langs: "Languages, e.g. zh-cn,en",
+    save: "Save", saved: "Saved",
+    settingsHint: "Get a free API key at opensubtitles.com → API consumers. Languages are tried in order.",
+    keySet: (h) => "API key saved (" + h + ")", loaded: (n, c) => "Loaded: " + n + " (" + c + " lines)",
+    none: "No subtitle loaded.", fail: "Failed: ", needKey: "Save an OpenSubtitles API key first."
+  },
+  zh: {
+    tagline: "在任意输入源上显示字幕，所有操作都在这个页面完成。",
+    playback: "播放计时", play: "▶ 开始", pause: "❚❚ 暂停", setTime: "设为此时间",
+    clockHint: "视频开始时按「开始」。如果有偏差，把时间设为播放器上显示的时间。",
+    find: "搜索字幕", queryPh: "电影或剧集名称", season: "季", episode: "集",
+    search: "搜索", searching: "正在搜索…", noResults: "没有找到字幕。", use: "使用",
+    results: (n) => "共 " + n + " 个结果", loading: "正在下载…",
+    timing: "时间和外观", offset: "偏移：", reset: "归零",
+    offsetHint: "正数表示字幕延后。", size: "字号（像素）：", apply: "应用",
+    upload: "上传自己的字幕", uploadBtn: "上传并显示", clear: "清除字幕",
+    settings: "设置", apiKey: "OpenSubtitles API Key", langs: "语言，例如 zh-cn,en",
+    save: "保存", saved: "已保存",
+    settingsHint: "在 opensubtitles.com → API consumers 免费申请 API Key。语言按顺序优先。",
+    keySet: (h) => "已保存 API Key（" + h + "）", loaded: (n, c) => "已加载：" + n + "（" + c + " 句）",
+    none: "尚未加载字幕。", fail: "失败：", needKey: "请先保存 OpenSubtitles API Key。"
+  }
+};
+const t = T[navigator.language.toLowerCase().startsWith("zh") ? "zh" : "en"];
+const $ = (id) => document.getElementById(id);
+document.querySelectorAll("[data-t]").forEach((el) => el.textContent = t[el.dataset.t]);
+document.querySelectorAll("[data-ph]").forEach((el) => el.placeholder = t[el.dataset.ph]);
+
+function toast(msg) {
+  const el = $("toast");
+  el.textContent = msg;
+  el.style.display = "block";
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => el.style.display = "none", 2500);
+}
+async function api(path, body) {
+  const opts = body === undefined ? {} : {method: "POST", body: JSON.stringify(body)};
+  const r = await fetch(path, opts);
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || data.ok === false) throw new Error(data.error || r.statusText);
+  return data;
+}
+function fmt(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  return Math.floor(s / 3600) + ":" + String(Math.floor(s / 60) % 60).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
+}
+function parseTime(v) {
+  const parts = v.trim().split(":").map(Number);
+  if (!parts.length || parts.some(isNaN)) return null;
+  return parts.reduce((acc, p) => acc * 60 + p, 0) * 1000;
+}
+
+let state = {};
+async function refresh() {
+  try {
+    state = await api("/status");
+  } catch (e) { return; }
+  $("clock").textContent = fmt(state.position_ms);
+  $("toggle").textContent = state.playing ? t.pause : t.play;
+  $("now").textContent = state.text || " ";
+  $("offset").textContent = (state.offset_ms / 1000).toFixed(1) + " s";
+  $("loaded").textContent = state.cues ? t.loaded(state.name, state.cues) : t.none;
+  if (!$("size").value) $("size").value = state.text_size_px;
+  $("version").textContent = "Subveil " + (state.app_version || "");
+}
+async function loadSettings() {
+  const s = await api("/settings");
+  $("apiKey").placeholder = s.api_key_set ? t.keySet(s.api_key_hint) : t.apiKey;
+  $("langs").value = s.languages;
+  return s;
+}
+
+$("toggle").onclick = async () => { await api("/clock", {action: "toggle"}); refresh(); };
+document.querySelectorAll("[data-seek]").forEach((b) => b.onclick = async () => {
+  await api("/clock", {action: "seek", delta_ms: Number(b.dataset.seek)}); refresh();
+});
+$("setBtn").onclick = async () => {
+  const ms = parseTime($("setTime").value);
+  if (ms === null) return;
+  await api("/clock", {action: "set", position_ms: ms}); refresh();
+};
+document.querySelectorAll("[data-offset]").forEach((b) => b.onclick = async () => {
+  const v = b.dataset.offset === "reset" ? 0 : state.offset_ms + Number(b.dataset.offset);
+  await api("/offset?notify=1", {offset_ms: v}); refresh();
+});
+$("sizeBtn").onclick = async () => { await api("/style", {text_size_px: Number($("size").value)}); toast(t.saved); };
+$("clearBtn").onclick = async () => { await api("/clear", {}); refresh(); };
+$("uploadBtn").onclick = async () => {
+  const f = $("file").files[0];
+  if (!f) return;
+  const r = await fetch("/subtitle?name=" + encodeURIComponent(f.name), {method: "POST", body: await f.arrayBuffer()});
+  const d = await r.json().catch(() => ({}));
+  toast(r.ok ? t.loaded(f.name, d.cues) : t.fail + (d.error || r.statusText));
+  refresh();
+};
+$("saveBtn").onclick = async () => {
+  const body = {languages: $("langs").value};
+  if ($("apiKey").value.trim()) body.api_key = $("apiKey").value.trim();
+  await api("/settings", body);
+  $("apiKey").value = "";
+  await loadSettings();
+  toast(t.saved);
+};
+
+function resultLabel(c) {
+  const tags = ["<span class=tag>" + c.language + "</span>", "<span class=tag>↓" + c.downloads + "</span>"];
+  if (c.hearing_impaired) tags.push("<span class=tag>HI</span>");
+  if (c.machine_translated) tags.push("<span class=tag>MT</span>");
+  const name = document.createElement("span");
+  name.textContent = c.release;
+  return tags.join("") + name.innerHTML;
+}
+async function search() {
+  const query = $("query").value.trim();
+  if (!query) return;
+  const body = {query};
+  if ($("season").value && $("episode").value) {
+    body.season = Number($("season").value);
+    body.episode = Number($("episode").value);
+  }
+  $("searchInfo").textContent = t.searching;
+  $("results").innerHTML = "";
+  try {
+    const {results} = await api("/search", body);
+    $("searchInfo").textContent = results.length ? t.results(results.length) : t.noResults;
+    for (const c of results) {
+      const li = document.createElement("li");
+      li.innerHTML = "<span class=label>" + resultLabel(c) + "</span>";
+      const b = document.createElement("button");
+      b.textContent = t.use;
+      b.onclick = async () => {
+        b.disabled = true;
+        toast(t.loading);
+        try {
+          const d = await api("/download", {file_id: c.file_id});
+          toast(t.loaded(d.name, d.cues));
+        } catch (e) { toast(t.fail + e.message); }
+        b.disabled = false;
+        refresh();
+      };
+      li.appendChild(b);
+      $("results").appendChild(li);
+    }
+  } catch (e) {
+    $("searchInfo").textContent = t.fail + e.message;
+  }
+}
+$("searchBtn").onclick = search;
+$("query").onkeydown = (e) => { if (e.key === "Enter") search(); };
+
+loadSettings().then((s) => { if (!s.api_key_set) $("searchInfo").textContent = t.needKey; });
+refresh();
+setInterval(refresh, 500);
+</script>
+</body>
+</html>

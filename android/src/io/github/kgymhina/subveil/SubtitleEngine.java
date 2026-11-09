@@ -34,6 +34,23 @@ final class SubtitleEngine {
         playing = isPlaying;
     }
 
+    /** Starts or pauses the clock without moving the current position. */
+    synchronized void setPlaying(boolean isPlaying) {
+        sync(positionMs(), isPlaying);
+    }
+
+    synchronized void seekTo(long posMs) {
+        sync(Math.max(0, posMs), playing);
+    }
+
+    synchronized void seekBy(long deltaMs) {
+        seekTo(positionMs() + deltaMs);
+    }
+
+    synchronized boolean isPlaying() {
+        return playing;
+    }
+
     synchronized void setOffset(long ms) {
         offsetMs = ms;
     }

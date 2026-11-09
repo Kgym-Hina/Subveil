@@ -13,6 +13,9 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        variant: [ha, standalone]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -23,7 +26,9 @@ jobs:
         with:
           packages: "build-tools;35.0.0 platforms;android-34"
       - run: android/build.sh
+        env:
+          VARIANT: ${{ matrix.variant }}
       - uses: actions/upload-artifact@v4
         with:
-          name: subveil-apk-debug
+          name: subveil-${{ matrix.variant }}-apk-debug
           path: android/build/subveil-*.apk
