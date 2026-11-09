@@ -157,6 +157,43 @@ Android TV 没有「显示在其他应用上层」的设置页面，所以 Subve
 - `subveil.search`：在 OpenSubtitles 搜索；不填 `query` 时使用当前片名。
 - `subveil.set_text_size`：设置字号（1080p 屏幕像素）。
 
+## 语音控制和命令
+
+### Home Assistant Assist（语音）
+
+集成会注册语音 intent，并把对应的句子安装到 `<配置目录>/custom_sentences/en/subveil.yaml` 和 `zh-cn/subveil.yaml`（文件已存在时不会覆盖，你的修改会保留）。任何 Assist 设备都可以使用：Home Assistant App、语音卫星或 Voice Preview Edition。可以这样说：
+
+| 英文 | 中文 | 作用 |
+|---|---|---|
+| "turn on the subtitles" | "打开字幕" | 开启字幕 |
+| "turn off the subtitles" | "关闭字幕" | 关闭字幕 |
+| "find subtitles" / "match the subtitles" | "匹配字幕" / "重新搜索字幕" | 为当前影片搜索并加载最匹配的字幕 |
+| "delay the subtitles by 2 seconds" / "subtitles are too early" | "字幕延后2秒" / "字幕太早了" | 字幕延后（不说秒数时为 0.5 秒） |
+| "advance the subtitles by 2 seconds" / "subtitles are too late" | "字幕提前2秒" / "字幕太晚了" | 字幕提前 |
+| "reset the subtitle timing" | "字幕时间归零" | 偏移归零 |
+
+对应的 intent 是 `SubveilSubtitlesOn`、`SubveilSubtitlesOff`、`SubveilMatchSubtitles`、`SubveilOffsetLater`、`SubveilOffsetEarlier`（可选参数 `seconds`）和 `SubveilOffsetReset`，也可以用在 `intent_script`、自动化或你自己的句子里。其它语言需要自己写句子文件。
+
+### 给电视本身的命令
+
+第三方 App 无法接入电视自带的语音助手（Android TV 上的 Google 助理只通过 Play 商店的 App Actions 与应用交互），所以电视 App 提供了标准的 Android 广播 intent。任何能发送广播的工具都可以控制它：Tasker 等自动化 App、例程、`adb`：
+
+```sh
+# 包名是 io.github.kgymhina.subveil（独立版是 io.github.kgymhina.subveil.standalone）
+adb shell am broadcast -p io.github.kgymhina.subveil -a io.github.kgymhina.subveil.action.SUBTITLES_OFF
+adb shell am broadcast -p io.github.kgymhina.subveil -a io.github.kgymhina.subveil.action.OFFSET_SHIFT --ef seconds -2.5
+```
+
+| Action（前缀 `io.github.kgymhina.subveil.action.`） | 参数 | 作用 |
+|---|---|---|
+| `SUBTITLES_ON`、`SUBTITLES_OFF`、`SUBTITLES_TOGGLE` | | 字幕总开关 |
+| `SUBTITLES_MATCH` | | 为当前影片重新搜索字幕（独立版，配合 Apple TV） |
+| `OFFSET_SHIFT` | `seconds`（浮点数或字符串） | 在现有偏移上增减，正数表示字幕延后 |
+| `OFFSET_SET` | `seconds` | 设置偏移 |
+| `OFFSET_RESET` | | 偏移归零 |
+
+同样的功能也可以通过 HTTP（`POST /enabled`、`POST /offset`）使用。
+
 ## 同步原理
 
 Home Assistant 提供播放器的 `media_position` 和 `media_position_updated_at`。Subveil 在播放、暂停、拖动进度时把位置发送给电视，并每 10 秒校准一次；两次同步之间由电视 App 自己计时。停止播放时隐藏字幕。

@@ -1,0 +1,37 @@
+language: "zh-cn"
+intents:
+  SubveilSubtitlesOn:
+    data:
+      - sentences:
+          - "(打开|开启|显示)字幕"
+          - "字幕开"
+  SubveilSubtitlesOff:
+    data:
+      - sentences:
+          - "(关闭|关掉|隐藏)字幕"
+          - "字幕关"
+  SubveilMatchSubtitles:
+    data:
+      - sentences:
+          - "(匹配|查找|搜索|加载)字幕"
+          - "重新(匹配|搜索)字幕"
+  SubveilOffsetLater:
+    data:
+      - sentences:
+          - "字幕(延后|延迟|晚一点)[{seconds}秒]"
+          - "字幕太早了"
+  SubveilOffsetEarlier:
+    data:
+      - sentences:
+          - "字幕(提前|早一点)[{seconds}秒]"
+          - "字幕太晚了"
+  SubveilOffsetReset:
+    data:
+      - sentences:
+          - "字幕(偏移|时间)(归零|重置)"
+          - "重置字幕(偏移|时间)"
+lists:
+  seconds:
+    range:
+      from: 1
+      to: 60

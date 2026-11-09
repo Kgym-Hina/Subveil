@@ -6,6 +6,7 @@ from homeassistant.config_entries import SOURCE_USER
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import intent
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
@@ -133,6 +134,28 @@ async def test_auto_match_and_controls(hass: HomeAssistant, aioclient_mock: Aioh
     hass.states.async_set(PLAYER, "idle", {})
     await hass.async_block_till_done()
     assert calls(aioclient_mock, "/visible")[-1][2] == {"visible": False}
+
+
+async def test_voice_intents(hass: HomeAssistant, aioclient_mock: AiohttpClientMocker) -> None:
+    entry = await setup(hass, aioclient_mock)
+    switch = entity_id(hass, "switch", entry, "subtitles")
+
+    async def say(name, slots=None, language="en"):
+        slots = {k: {"value": v} for k, v in (slots or {}).items()}
+        return await intent.async_handle(hass, "test", name, slots, language=language)
+
+    res = await say("SubveilSubtitlesOff", language="zh-cn")
+    assert res.speech["plain"]["speech"] == "字幕已关闭"
+    assert hass.states.get(switch).state == "off"
+    await say("SubveilSubtitlesOn")
+    assert hass.states.get(switch).state == "on"
+
+    await say("SubveilOffsetLater", {"seconds": 2})
+    assert calls(aioclient_mock, "/offset")[-1][2] == {"offset_ms": 2000}
+    await say("SubveilOffsetEarlier")
+    assert calls(aioclient_mock, "/offset")[-1][2] == {"offset_ms": 1500}
+    await say("SubveilOffsetReset")
+    assert calls(aioclient_mock, "/offset")[-1][2] == {"offset_ms": 0}
 
 
 async def test_unload(hass: HomeAssistant, aioclient_mock: AiohttpClientMocker) -> None:

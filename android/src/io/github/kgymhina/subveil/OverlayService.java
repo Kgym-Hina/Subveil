@@ -36,6 +36,7 @@ public class OverlayService extends Service {
     static final int PORT = 8765;
     static final String ACTION_DETACH = "io.github.kgymhina.subveil.DETACH";
     static final String ACTION_ATTACH = "io.github.kgymhina.subveil.ATTACH";
+    static final String COMMAND_PREFIX = "io.github.kgymhina.subveil.action.";
     private static final String CHANNEL = "overlay";
     private static final long ATTACH_DELAY_MS = 3000;
     private WindowManager.LayoutParams layoutParams;
@@ -275,9 +276,7 @@ public class OverlayService extends Service {
             }
             case "POST /enabled": {
                 boolean on = r.json().getBoolean("enabled");
-                engine.setEnabled(on);
-                prefs.edit().putBoolean("enabled", on).apply();
-                showNotice(getString(on ? R.string.subtitles_on : R.string.subtitles_off), 2000);
+                setEnabled(on);
                 return HttpServer.Response.json(200, ok().put("enabled", on));
             }
             case "POST /visible":
@@ -312,6 +311,45 @@ public class OverlayService extends Service {
             offset = prefs.getLong("offset_title:" + title, 0);
         }
         engine.setOffset(offset);
+    }
+
+    private void setEnabled(boolean on) {
+        engine.setEnabled(on);
+        prefs.edit().putBoolean("enabled", on).apply();
+        showNotice(getString(on ? R.string.subtitles_on : R.string.subtitles_off), 2000);
+    }
+
+    private void setOffset(long ms) {
+        engine.setOffset(ms);
+        saveOffset(ms);
+        showNotice(getString(R.string.offset_notice, ms / 1000.0), 2000);
+    }
+
+    /** Handles commands sent by CommandReceiver or `am start-foreground-service -a`. */
+    private void handleCommand(Intent intent) {
+        String command = intent.getAction().substring(COMMAND_PREFIX.length());
+        switch (command) {
+            case "SUBTITLES_ON": setEnabled(true); break;
+            case "SUBTITLES_OFF": setEnabled(false); break;
+            case "SUBTITLES_TOGGLE": setEnabled(!engine.isEnabled()); break;
+            case "OFFSET_RESET": setOffset(0); break;
+            // Positive seconds show subtitles later.
+            case "OFFSET_SHIFT": setOffset(engine.offsetMs() + Math.round(secondsExtra(intent) * 1000)); break;
+            case "OFFSET_SET": setOffset(Math.round(secondsExtra(intent) * 1000)); break;
+            case "SUBTITLES_MATCH":
+                if (appleTv != null && BuildInfo.STANDALONE) appleTv.reload();
+                break;
+            default:
+                Log.w(TAG, "Unknown command " + command);
+        }
+    }
+
+    /** Reads the "seconds" extra, which senders may give as a number or a string. */
+    private static double secondsExtra(Intent intent) {
+        Object v = intent.getExtras() == null ? null : intent.getExtras().get("seconds");
+        if (v instanceof Number) return ((Number) v).doubleValue();
+        if (v instanceof String) return Double.parseDouble((String) v);
+        throw new IllegalArgumentException("missing seconds extra");
     }
 
     private void saveOffset(long ms) {
@@ -378,6 +416,12 @@ public class OverlayService extends Service {
         } else if (ACTION_ATTACH.equals(action)) {
             main.removeCallbacks(attach);
             main.postDelayed(attach, ATTACH_DELAY_MS);
+        } else if (action != null && action.startsWith(COMMAND_PREFIX)) {
+            try {
+                handleCommand(intent);
+            } catch (RuntimeException e) {
+                Log.w(TAG, "Bad command " + action, e);
+            }
         }
         return START_STICKY;
     }

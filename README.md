@@ -157,6 +157,43 @@ All of these except the TV address can be changed later under **Configure**.
 - `subveil.search`: search OpenSubtitles; without `query` the current title is used.
 - `subveil.set_text_size`: set the text size in pixels (1080p screen).
 
+## Voice control and commands
+
+### Home Assistant Assist (voice)
+
+The integration registers voice intents and installs their sentences into `<config>/custom_sentences/en/subveil.yaml` and `zh-cn/subveil.yaml` (only if the files do not exist yet, so your edits are kept). Any Assist device works: the Home Assistant app, a voice satellite or a Voice Preview Edition. Say:
+
+| Say (English) | Say (中文) | Does |
+|---|---|---|
+| "turn on the subtitles" | "打开字幕" | Subtitles on |
+| "turn off the subtitles" | "关闭字幕" | Subtitles off |
+| "find subtitles" / "match the subtitles" | "匹配字幕" / "重新搜索字幕" | Search for the current title and load the best match |
+| "delay the subtitles by 2 seconds" / "subtitles are too early" | "字幕延后2秒" / "字幕太早了" | Show subtitles later (0.5 s if no number is given) |
+| "advance the subtitles by 2 seconds" / "subtitles are too late" | "字幕提前2秒" / "字幕太晚了" | Show subtitles earlier |
+| "reset the subtitle timing" | "字幕时间归零" | Offset back to 0 |
+
+The intents are `SubveilSubtitlesOn`, `SubveilSubtitlesOff`, `SubveilMatchSubtitles`, `SubveilOffsetLater`, `SubveilOffsetEarlier` (optional slot `seconds`) and `SubveilOffsetReset`, so you can also use them from `intent_script`, automations or your own sentences. Other languages need a sentence file of your own.
+
+### Commands for the TV itself
+
+Android has no way for a third-party app to join the TV's built-in voice assistant (Google Assistant on Android TV only talks to apps through Play Store App Actions), so the TV app instead accepts standard Android broadcast intents. Anything that can send one can drive it: Tasker or other automation apps, routines, `adb`:
+
+```sh
+# the package is io.github.kgymhina.subveil (io.github.kgymhina.subveil.standalone for the standalone edition)
+adb shell am broadcast -p io.github.kgymhina.subveil -a io.github.kgymhina.subveil.action.SUBTITLES_OFF
+adb shell am broadcast -p io.github.kgymhina.subveil -a io.github.kgymhina.subveil.action.OFFSET_SHIFT --ef seconds -2.5
+```
+
+| Action (prefix `io.github.kgymhina.subveil.action.`) | Extra | Does |
+|---|---|---|
+| `SUBTITLES_ON`, `SUBTITLES_OFF`, `SUBTITLES_TOGGLE` | | Global switch |
+| `SUBTITLES_MATCH` | | Search again for the current title (standalone, with an Apple TV) |
+| `OFFSET_SHIFT` | `seconds` (float or string) | Add to the offset; positive shows subtitles later |
+| `OFFSET_SET` | `seconds` | Set the offset |
+| `OFFSET_RESET` | | Offset back to 0 |
+
+The same commands are available over HTTP (`POST /enabled`, `POST /offset`) for the Home Assistant edition's integration and the web page.
+
 ## How syncing works
 
 Home Assistant reports `media_position` and `media_position_updated_at` for the player. Subveil sends the position to the TV on every play, pause or seek and re-syncs every 10 seconds; between updates the TV app advances the clock itself. When playback stops, the overlay is hidden.

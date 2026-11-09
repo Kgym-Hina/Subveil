@@ -1,0 +1,36 @@
+language: "en"
+intents:
+  SubveilSubtitlesOn:
+    data:
+      - sentences:
+          - "(turn on|enable|show) [the] subtitles"
+          - "subtitles on"
+  SubveilSubtitlesOff:
+    data:
+      - sentences:
+          - "(turn off|disable|hide) [the] subtitles"
+          - "subtitles off"
+  SubveilMatchSubtitles:
+    data:
+      - sentences:
+          - "(match|find|load|get) [the] subtitles"
+          - "find subtitles for this"
+  SubveilOffsetLater:
+    data:
+      - sentences:
+          - "(delay|move) [the] subtitles later [by {seconds} second[s]]"
+          - "subtitles are too early"
+  SubveilOffsetEarlier:
+    data:
+      - sentences:
+          - "(advance|move) [the] subtitles earlier [by {seconds} second[s]]"
+          - "subtitles are too late"
+  SubveilOffsetReset:
+    data:
+      - sentences:
+          - "reset [the] subtitle (offset|timing)"
+lists:
+  seconds:
+    range:
+      from: 1
+      to: 60

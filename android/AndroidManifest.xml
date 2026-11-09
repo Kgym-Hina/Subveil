@@ -30,6 +30,19 @@
                 android:value="subtitle overlay for HDMI input" />
         </service>
 
+        <!-- Commands from other apps: broadcast io.github.kgymhina.subveil.action.SUBTITLES_ON etc. -->
+        <receiver android:name=".CommandReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="io.github.kgymhina.subveil.action.SUBTITLES_ON" />
+                <action android:name="io.github.kgymhina.subveil.action.SUBTITLES_OFF" />
+                <action android:name="io.github.kgymhina.subveil.action.SUBTITLES_TOGGLE" />
+                <action android:name="io.github.kgymhina.subveil.action.SUBTITLES_MATCH" />
+                <action android:name="io.github.kgymhina.subveil.action.OFFSET_SHIFT" />
+                <action android:name="io.github.kgymhina.subveil.action.OFFSET_SET" />
+                <action android:name="io.github.kgymhina.subveil.action.OFFSET_RESET" />
+            </intent-filter>
+        </receiver>
+
         <receiver android:name=".BootReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />

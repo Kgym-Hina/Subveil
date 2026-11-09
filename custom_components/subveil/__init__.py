@@ -14,6 +14,7 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
 from .const import DOMAIN
+from .intents import async_install_sentences, async_setup_intents
 from .manager import SubtitleManager
 
 PLATFORMS = [Platform.BUTTON, Platform.NUMBER, Platform.SELECT, Platform.SENSOR, Platform.SWITCH, Platform.TEXT]
@@ -83,6 +84,8 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     async def text_size(call: ServiceCall) -> None:
         await _manager(hass, call).async_set_text_size(call.data["size"])
 
+    async_setup_intents(hass)
+    hass.async_create_task(async_install_sentences(hass))
     hass.services.async_register(DOMAIN, "upload_subtitle", upload, schema=UPLOAD_SCHEMA)
     hass.services.async_register(DOMAIN, "search", search, schema=SEARCH_SCHEMA)
     hass.services.async_register(DOMAIN, "set_text_size", text_size, schema=TEXT_SIZE_SCHEMA)
