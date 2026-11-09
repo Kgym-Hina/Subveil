@@ -1,26 +1,54 @@
 {
   "entity": {
     "button": {
-      "research": { "default": "mdi:refresh" },
-      "offset_earlier": { "default": "mdi:rewind" },
-      "offset_later": { "default": "mdi:fast-forward" }
+      "research": {
+        "default": "mdi:refresh"
+      },
+      "offset_earlier": {
+        "default": "mdi:rewind"
+      },
+      "offset_later": {
+        "default": "mdi:fast-forward"
+      }
     },
     "number": {
-      "offset": { "default": "mdi:timer-sync-outline" }
+      "offset": {
+        "default": "mdi:timer-sync-outline"
+      }
     },
     "select": {
-      "subtitle": { "default": "mdi:subtitles" }
+      "subtitle": {
+        "default": "mdi:subtitles"
+      }
     },
     "sensor": {
-      "status": { "default": "mdi:information-outline" }
+      "status": {
+        "default": "mdi:information-outline"
+      }
     },
     "text": {
-      "search_query": { "default": "mdi:magnify" }
+      "search_query": {
+        "default": "mdi:magnify"
+      }
+    },
+    "switch": {
+      "subtitles": {
+        "default": "mdi:subtitles",
+        "state": {
+          "off": "mdi:subtitles-outline"
+        }
+      }
     }
   },
   "services": {
-    "upload_subtitle": { "service": "mdi:upload" },
-    "search": { "service": "mdi:magnify" },
-    "set_text_size": { "service": "mdi:format-size" }
+    "upload_subtitle": {
+      "service": "mdi:upload"
+    },
+    "search": {
+      "service": "mdi:magnify"
+    },
+    "set_text_size": {
+      "service": "mdi:format-size"
+    }
   }
 }

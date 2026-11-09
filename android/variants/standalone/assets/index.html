@@ -63,6 +63,9 @@ li .label{flex:1;font-size:14px;word-break:break-all}
 
   <section>
     <h2 data-t="playback"></h2>
+    <div class="row">
+      <button class="primary" id="power"></button>
+    </div>
     <div class="clock" id="clock">0:00:00</div>
     <div class="row">
       <button class="primary" id="toggle"></button>
@@ -145,6 +148,7 @@ const T = {
     tagline: "Subtitles over any input. Control everything from this page.",
     test: "Test overlay", testSent: "Look at the TV: a test message shows for 5 seconds.",
     testNoOverlay: "The overlay is not attached. Grant the overlay permission over ADB (see README).",
+    subsOn: "Subtitles: ON (tap to turn off)", subsOff: "Subtitles: OFF (tap to turn on)",
     playback: "Playback clock", play: "▶ Play", pause: "❚❚ Pause", setTime: "Set time",
     clockHint: "Press Play when the video starts. If it drifts, set the time to what your player shows.",
     find: "Find subtitles", queryPh: "Movie or series title", season: "Season", episode: "Episode",
@@ -170,6 +174,7 @@ const T = {
     tagline: "在任意输入源上显示字幕，所有操作都在这个页面完成。",
     test: "测试悬浮窗显示", testSent: "请看电视：测试文字会显示 5 秒。",
     testNoOverlay: "悬浮窗未生效，请通过 ADB 授予悬浮窗权限（见 README）。",
+    subsOn: "字幕：已开启（点击关闭）", subsOff: "字幕：已关闭（点击开启）",
     playback: "播放计时", play: "▶ 开始", pause: "❚❚ 暂停", setTime: "设为此时间",
     clockHint: "视频开始时按「开始」。如果有偏差，把时间设为播放器上显示的时间。",
     find: "搜索字幕", queryPh: "电影或剧集名称", season: "季", episode: "集",
@@ -226,6 +231,8 @@ async function refresh() {
   try {
     state = await api("/status");
   } catch (e) { return; }
+  $("power").textContent = state.enabled === false ? t.subsOff : t.subsOn;
+  $("power").className = state.enabled === false ? "" : "primary";
   $("clock").textContent = fmt(state.position_ms);
   $("toggle").textContent = state.playing ? t.pause : t.play;
   $("now").textContent = state.text || " ";
@@ -245,6 +252,7 @@ $("testBtn").onclick = async () => {
   const d = await api("/test", {});
   toast(d.overlay ? t.testSent : t.testNoOverlay);
 };
+$("power").onclick = async () => { await api("/enabled", {enabled: state.enabled === false}); refresh(); };
 $("toggle").onclick = async () => { await api("/clock", {action: "toggle"}); refresh(); };
 document.querySelectorAll("[data-seek]").forEach((b) => b.onclick = async () => {
   await api("/clock", {action: "seek", delta_ms: Number(b.dataset.seek)}); refresh();

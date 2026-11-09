@@ -61,5 +61,8 @@ class TvClient:
     async def set_visible(self, visible: bool) -> dict[str, Any]:
         return await self._request("POST", "/visible", json={"visible": visible})
 
+    async def set_enabled(self, enabled: bool) -> dict[str, Any]:
+        return await self._request("POST", "/enabled", json={"enabled": enabled})
+
     async def set_text_size(self, px: float) -> dict[str, Any]:
         return await self._request("POST", "/style", json={"text_size_px": px})

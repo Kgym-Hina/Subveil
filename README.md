@@ -21,6 +21,7 @@ Apple TV ──(Home Assistant media player)──> Home Assistant ──HTTP :8
 - Automatic search when a new title starts playing (movies by title, shows by series + season + episode), ranked by exact title match, your language order and popularity.
 - Pick another subtitle, nudge the timing and change the text size from Home Assistant. Offset and choice are remembered per title.
 - Upload your own SRT, WebVTT or ASS/SSA files from Home Assistant or from a web page served by the TV app. UTF-8, UTF-16 and GBK files are supported.
+- A global on/off switch for subtitles, on the web page and as `switch.subveil_subtitles` in Home Assistant. The TV remembers it.
 - Starts at boot and recovers automatically when the TV app restarts.
 
 ## Two editions

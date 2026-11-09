@@ -21,6 +21,7 @@ Apple TV ──(Home Assistant 媒体播放器)──> Home Assistant ──HTTP
 - 开始播放新片时自动搜索（电影按片名，剧集按剧名 + 季 + 集），按片名完全匹配、语言优先级和下载量排序。
 - 在 Home Assistant 中切换字幕、微调时间、修改字号；偏移和选择按片源记忆。
 - 可以从 Home Assistant 或电视 App 提供的网页上传自己的 SRT、WebVTT、ASS/SSA 字幕，支持 UTF-8、UTF-16 和 GBK 编码。
+- 字幕总开关：在网页上或 Home Assistant 的 `switch.subveil_subtitles` 一键开关所有字幕，电视会记住这个设置。
 - 开机自动启动；电视 App 重启后自动恢复字幕。
 
 ## 两个版本

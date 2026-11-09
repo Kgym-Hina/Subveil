@@ -10,4 +10,6 @@
     <string name="offset_notice">Subtitle offset %1$+.1f s</string>
     <string name="playback_started">Subveil: playback detected, subtitles are on</string>
     <string name="playback_ended">Subveil: playback ended</string>
+    <string name="subtitles_on">Subveil: subtitles on</string>
+    <string name="subtitles_off">Subveil: subtitles off</string>
 </resources>

@@ -70,6 +70,7 @@ public class OverlayService extends Service {
     public void onCreate() {
         super.onCreate();
         prefs = getSharedPreferences("settings", MODE_PRIVATE);
+        engine.setEnabled(prefs.getBoolean("enabled", true));
         NotificationManager nm = getSystemService(NotificationManager.class);
         nm.createNotificationChannel(new NotificationChannel(CHANNEL, getString(R.string.channel_name), NotificationManager.IMPORTANCE_LOW));
         Notification n = new Notification.Builder(this, CHANNEL)
@@ -105,6 +106,7 @@ public class OverlayService extends Service {
 
             @Override
             public void notice(boolean started) {
+                if (!engine.isEnabled()) return;
                 showNotice(getString(started ? R.string.playback_started : R.string.playback_ended), 4000);
             }
         });
@@ -270,6 +272,13 @@ public class OverlayService extends Service {
                     showNotice(getString(R.string.offset_notice, ms / 1000.0), 2000);
                 }
                 return HttpServer.Response.json(200, ok());
+            }
+            case "POST /enabled": {
+                boolean on = r.json().getBoolean("enabled");
+                engine.setEnabled(on);
+                prefs.edit().putBoolean("enabled", on).apply();
+                showNotice(getString(on ? R.string.subtitles_on : R.string.subtitles_off), 2000);
+                return HttpServer.Response.json(200, ok().put("enabled", on));
             }
             case "POST /visible":
                 engine.setVisible(r.json().getBoolean("visible"));

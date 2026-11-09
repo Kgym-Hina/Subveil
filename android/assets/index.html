@@ -13,6 +13,7 @@ pre{background:#f4f4f4;padding:12px;white-space:pre-wrap}
 </head>
 <body>
 <h2>Subveil</h2>
+<p><button id="power"></button></p>
 <p><input type="file" id="file" accept=".srt,.vtt,.ass,.ssa"></p>
 <p><button id="upload"></button><button id="clear"></button><button id="test"></button></p>
 <p><span id="offsetLabel"></span>
@@ -25,11 +26,13 @@ pre{background:#f4f4f4;padding:12px;white-space:pre-wrap}
 const T = {
   en: {upload: "Upload and show", clear: "Clear", offsetLabel: "Offset:", sizeLabel: "Text size (px):",
        apply: "Apply", note: "Playback position is synced by Home Assistant. Picking a subtitle in Home Assistant replaces one uploaded here.",
+       on: "Subtitles: ON (tap to turn off)", off: "Subtitles: OFF (tap to turn on)",
        ok: "Loaded", fail: "Failed: ", test: "Test overlay",
        testSent: "Look at the TV: a test message shows for 5 seconds.",
        testNoOverlay: "The overlay is not attached. Grant the overlay permission over ADB (see README)."},
   zh: {upload: "上传并显示", clear: "清除字幕", offsetLabel: "偏移：", sizeLabel: "字号（像素）：",
        apply: "应用", note: "播放进度由 Home Assistant 同步；在 Home Assistant 中选择字幕会替换这里上传的字幕。",
+       on: "字幕：已开启（点击关闭）", off: "字幕：已关闭（点击开启）",
        ok: "已加载", fail: "失败：", test: "测试悬浮窗显示",
        testSent: "请看电视：测试文字会显示 5 秒。",
        testNoOverlay: "悬浮窗未生效，请通过 ADB 授予悬浮窗权限（见 README）。"}
@@ -43,6 +46,8 @@ async function refresh() {
   const s = await status();
   $("status").textContent = JSON.stringify(s, null, 2);
   if (!$("size").value) $("size").value = s.text_size_px;
+  $("power").textContent = s.enabled === false ? t.off : t.on;
+  $("power").dataset.on = s.enabled === false ? "" : "1";
 }
 async function post(path, body) { await fetch(path, {method: "POST", body: JSON.stringify(body)}); refresh(); }
 
@@ -53,6 +58,7 @@ $("upload").onclick = async () => {
   alert(r.ok ? t.ok : t.fail + await r.text());
   refresh();
 };
+$("power").onclick = () => post("/enabled", {enabled: !$("power").dataset.on});
 $("clear").onclick = () => post("/clear", {});
 $("test").onclick = async () => {
   const d = await (await fetch("/test", {method: "POST", body: "{}"})).json();

@@ -8,7 +8,7 @@ plugins {
 val withPython = gradle.startParameter.taskNames.any { it.contains("standalone", ignoreCase = true) }
 if (withPython) apply(plugin = "com.chaquo.python")
 
-val appVersion = "0.3.0"
+val appVersion = "0.4.0"
 val zeroconfVersion = "0.146.0"
 
 android {
@@ -19,7 +19,7 @@ android {
         applicationId = "io.github.kgymhina.subveil"
         minSdk = 26
         targetSdk = 34
-        versionCode = 3
+        versionCode = 4
         versionName = appVersion
     }
 

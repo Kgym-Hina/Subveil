@@ -95,6 +95,7 @@ class SubtitleManager:
         self.status = STATUS_IDLE
         self.detail: str | None = None
         self.tv_online = False
+        self.enabled = True
         self.loaded_name: str | None = None
 
         self._current: tuple[str, bytes] | None = None
@@ -225,6 +226,9 @@ class SubtitleManager:
 
     async def _tick(self, _now: datetime) -> None:
         status = await self._tv(self.tv.status())
+        if status is not None and status.get("enabled", True) != self.enabled:
+            self.enabled = status.get("enabled", True)
+            self._notify()
         if status is not None and self._current and status.get("cues", 0) == 0:
             # The TV app restarted and lost its subtitle.
             await self._push_current()
@@ -311,6 +315,11 @@ class SubtitleManager:
         await self._tv(self.tv.set_offset(offset_ms, notify=True))
         self._save()
         self._notify()
+
+    async def async_set_enabled(self, enabled: bool) -> None:
+        if await self._tv(self.tv.set_enabled(enabled)) is not None:
+            self.enabled = enabled
+            self._notify()
 
     async def async_set_text_size(self, px: float) -> None:
         await self._tv(self.tv.set_text_size(px))

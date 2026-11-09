@@ -16,7 +16,7 @@ from homeassistant.helpers.typing import ConfigType
 from .const import DOMAIN
 from .manager import SubtitleManager
 
-PLATFORMS = [Platform.BUTTON, Platform.NUMBER, Platform.SELECT, Platform.SENSOR, Platform.TEXT]
+PLATFORMS = [Platform.BUTTON, Platform.NUMBER, Platform.SELECT, Platform.SENSOR, Platform.SWITCH, Platform.TEXT]
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 ATTR_ENTRY = "config_entry_id"

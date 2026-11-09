@@ -42,7 +42,7 @@ SEARCH = {
 
 def mock_tv(aioclient_mock: AiohttpClientMocker) -> None:
     aioclient_mock.get(f"{TV}/status", json={"ok": True, "cues": 1})
-    for path in ("subtitle", "clear", "sync", "offset", "visible", "style"):
+    for path in ("subtitle", "clear", "sync", "offset", "visible", "style", "enabled"):
         aioclient_mock.post(f"{TV}/{path}", json={"ok": True, "cues": 1})
 
 
@@ -123,6 +123,12 @@ async def test_auto_match_and_controls(hass: HomeAssistant, aioclient_mock: Aioh
     await hass.services.async_call(DOMAIN, "upload_subtitle", {"path": str(f)}, blocking=True)
     assert hass.states.get(select).state == "1. ⇪ mine.srt"
     assert calls(aioclient_mock, "/subtitle")[-1][2] == SRT
+
+    switch = entity_id(hass, "switch", entry, "subtitles")
+    assert hass.states.get(switch).state == "on"
+    await hass.services.async_call("switch", "turn_off", {"entity_id": switch}, blocking=True)
+    assert calls(aioclient_mock, "/enabled")[-1][2] == {"enabled": False}
+    assert hass.states.get(switch).state == "off"
 
     hass.states.async_set(PLAYER, "idle", {})
     await hass.async_block_till_done()

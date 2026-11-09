@@ -18,6 +18,7 @@ final class SubtitleEngine {
     private boolean playing;
     private boolean visible = true;
     private boolean idle;
+    private boolean enabled = true;
 
     synchronized void load(String n, List<Cue> c) {
         name = n;
@@ -68,6 +69,15 @@ final class SubtitleEngine {
         visible = v;
     }
 
+    /** Global switch set by the user; unlike visible, it is not changed by playback sync. */
+    synchronized void setEnabled(boolean v) {
+        enabled = v;
+    }
+
+    synchronized boolean isEnabled() {
+        return enabled;
+    }
+
     /** True while the source has nothing playing; the clock is stopped and no text is shown. */
     synchronized void setIdle(boolean v) {
         if (v && !idle) sync(positionMs(), false);
@@ -80,7 +90,7 @@ final class SubtitleEngine {
 
     /** Positive offsets show subtitles later. */
     synchronized String currentText() {
-        if (!visible || idle || cues.isEmpty()) return "";
+        if (!enabled || !visible || idle || cues.isEmpty()) return "";
         long t = positionMs() - offsetMs;
         StringBuilder sb = new StringBuilder();
         for (Cue c : cues) {
@@ -101,6 +111,7 @@ final class SubtitleEngine {
         o.put("position_ms", positionMs());
         o.put("playing", playing);
         o.put("visible", visible);
+        o.put("enabled", enabled);
         o.put("text", currentText());
         return o;
     }

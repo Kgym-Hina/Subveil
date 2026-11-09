@@ -10,4 +10,6 @@
     <string name="offset_notice">字幕偏移 %1$+.1f 秒</string>
     <string name="playback_started">Subveil：检测到开始播放，字幕已开启</string>
     <string name="playback_ended">Subveil：播放已结束</string>
+    <string name="subtitles_on">Subveil：字幕已开启</string>
+    <string name="subtitles_off">Subveil：字幕已关闭</string>
 </resources>

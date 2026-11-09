@@ -98,6 +98,11 @@
       "search_query": {
         "name": "Search query"
       }
+    },
+    "switch": {
+      "subtitles": {
+        "name": "Subtitles"
+      }
     }
   },
   "services": {
