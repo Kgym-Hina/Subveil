@@ -44,18 +44,48 @@ Apple TV ──(Home Assistant 媒体播放器)──> Home Assistant ──HTTP
    adb shell am start-foreground-service -n io.github.kgymhina.subveil.standalone/io.github.kgymhina.subveil.OverlayService
    ```
 
-2. 在手机或电脑上打开 `http://<电视IP>:8765`。
+   详见 [授予悬浮窗权限](#授予悬浮窗权限必需每台电视一次)。
+2. 在手机或电脑上打开 `http://<电视IP>:8765`，按 **测试悬浮窗显示** 确认电视上能看到文字。
 3. 在 **设置** 中保存 OpenSubtitles API Key 和语言（例如 `zh-cn,en`）。
 4. 搜索片名，在结果上按 **使用**，视频开始时按 **开始**。有偏差时用跳转按钮、**设为此时间** 或偏移来修正。
 
 本文其余部分介绍 Home Assistant 版本。
+## 授予悬浮窗权限（必需，每台电视一次）
+
+Android TV 没有「显示在其他应用上层」的设置页面，所以 Subveil 无法在屏幕上申请这个权限。安装后需要通过 ADB 授权一次：
+
+1. 在电视上开启 **开发者选项**（设置 → 设备偏好设置 → 关于 → 连按 **版本号** 7 次），然后在开发者选项中打开 **USB 调试** / **网络调试**。不同品牌的菜单名称略有不同。
+2. 在电脑上连接电视并授权。请使用你安装的版本对应的包名：
+
+   ```sh
+   adb connect <电视IP>:5555        # 第一次连接时需要在电视上确认
+
+   # Home Assistant 版
+   adb shell appops set io.github.kgymhina.subveil SYSTEM_ALERT_WINDOW allow
+   # 独立版
+   adb shell appops set io.github.kgymhina.subveil.standalone SYSTEM_ALERT_WINDOW allow
+   ```
+
+3. 检查是否成功，输出中应包含 `allow`：
+
+   ```sh
+   adb shell appops get io.github.kgymhina.subveil.standalone SYSTEM_ALERT_WINDOW
+   ```
+
+4. 启动服务（或打开一次 App），然后打开 `http://<电视IP>:8765`，按 **测试悬浮窗显示**。电视底部会显示 5 秒测试文字。如果页面提示悬浮窗未生效，请重复第 2 步并重新启动服务。
+
+没有字幕需要显示时悬浮窗是透明的，所以安装后屏幕上什么都看不到是正常的，可以用 **测试悬浮窗显示** 来检查。
+
+更新 App 或重启电视后权限仍然有效，卸载后需要重新授权。
+
+已测试：小米电视（HyperOS，Android 14）、索尼 BRAVIA（Android 9）。
 ## 要求
 
 - Android 8.0 及以上的 Android TV，并开启 ADB 调试（只用于一次性授予悬浮窗权限）。
 - Home Assistant 2026.3 及以上，并有对应信号源的媒体播放器实体，例如 [Apple TV 集成](https://www.home-assistant.io/integrations/apple_tv/)。
 - [OpenSubtitles.com API Key](https://www.opensubtitles.com/en/consumers)（免费）。
 
-悬浮窗能否显示在 HDMI 画面上取决于电视型号。已在小米电视（HyperOS，Android 14）+ Apple TV 上测试通过。
+悬浮窗能否显示在 HDMI 画面上取决于电视型号。已在小米电视（HyperOS，Android 14）+ Apple TV 和索尼 BRAVIA（Android 9）上测试通过。
 
 ## 1. 安装电视 App
 

@@ -44,18 +44,48 @@ Both editions use different package names (`io.github.kgymhina.subveil` and `io.
    adb shell am start-foreground-service -n io.github.kgymhina.subveil.standalone/io.github.kgymhina.subveil.OverlayService
    ```
 
-2. Open `http://<tv-ip>:8765` on your phone or computer.
+   See [Grant the overlay permission](#grant-the-overlay-permission-required-once-per-tv) for details.
+2. Open `http://<tv-ip>:8765` on your phone or computer and press **Test overlay** to check that text appears on the TV.
 3. Under **Settings**, save your OpenSubtitles API key and languages (e.g. `zh-cn,en`).
 4. Search for the title, press **Use** on a result, then press **Play** when the video starts. Fix any drift with the jump buttons, **Set time** or the offset.
 
 The rest of this document covers the Home Assistant edition.
+## Grant the overlay permission (required, once per TV)
+
+Android TV has no settings screen for "display over other apps", so Subveil cannot ask for it on screen. Grant it once over ADB after installing:
+
+1. On the TV, enable **Developer options** (Settings → Device preferences → About → press **Build** 7 times), then turn on **USB debugging** / **Network debugging** under Developer options. The exact menu names vary by brand.
+2. On your computer, connect and grant the permission. Use the package name of the edition you installed:
+
+   ```sh
+   adb connect <tv-ip>:5555        # accept the prompt on the TV the first time
+
+   # Home Assistant edition
+   adb shell appops set io.github.kgymhina.subveil SYSTEM_ALERT_WINDOW allow
+   # Standalone edition
+   adb shell appops set io.github.kgymhina.subveil.standalone SYSTEM_ALERT_WINDOW allow
+   ```
+
+3. Check it worked; the output should contain `allow`:
+
+   ```sh
+   adb shell appops get io.github.kgymhina.subveil.standalone SYSTEM_ALERT_WINDOW
+   ```
+
+4. Start the service (or open the app once), then open `http://<tv-ip>:8765` and press **Test overlay**. A test message appears at the bottom of the TV for 5 seconds. If the page says the overlay is not attached, repeat step 2 and restart the service.
+
+The overlay is transparent while no subtitle line is showing, so a blank screen after installing is normal. Use **Test overlay** to check it.
+
+The permission survives app updates and reboots. It is lost if you uninstall the app.
+
+Tested on: Xiaomi TV (HyperOS, Android 14) and Sony BRAVIA (Android 9).
 ## Requirements
 
 - An Android TV with Android 8.0 or newer and ADB debugging enabled (used once, to grant the overlay permission).
 - Home Assistant 2026.3 or newer with a media player entity for your source, e.g. the [Apple TV integration](https://www.home-assistant.io/integrations/apple_tv/).
 - An [OpenSubtitles.com API key](https://www.opensubtitles.com/en/consumers) (free).
 
-Whether the overlay stays visible over HDMI depends on the TV. It has been tested on a Xiaomi TV (HyperOS, Android 14) with an Apple TV input.
+Whether the overlay stays visible over HDMI depends on the TV. It has been tested on a Xiaomi TV (HyperOS, Android 14) with an Apple TV input and on a Sony BRAVIA (Android 9).
 
 ## 1. Install the TV app
 
@@ -139,6 +169,7 @@ The app listens on port `8765` without authentication; keep it on your local net
 | POST | `/visible` | `{"visible": false}` |
 | POST | `/style` | `{"text_size_px": 40}` |
 | POST | `/clear` | |
+| POST | `/test` | Shows a test message for 5 seconds; returns whether the overlay is attached |
 | GET / POST | `/settings` | `{"api_key": "...", "languages": "zh-cn,en"}` |
 | POST | `/search` | `{"query": "Interstellar", "season": 1, "episode": 2}` (season and episode optional) |
 | POST | `/download` | `{"file_id": 123}`, downloads from OpenSubtitles and loads it |

@@ -48,6 +48,9 @@ li .label{flex:1;font-size:14px;word-break:break-all}
       <input type="text" id="setTime" placeholder="1:02:30" style="width:9em">
       <button id="setBtn" data-t="setTime"></button>
     </div>
+    <div class="row">
+      <button id="testBtn" data-t="test"></button>
+    </div>
     <p class="muted" data-t="clockHint"></p>
     <div class="now" id="now"></div>
     <p class="muted" id="loaded"></p>
@@ -110,6 +113,8 @@ li .label{flex:1;font-size:14px;word-break:break-all}
 const T = {
   en: {
     tagline: "Subtitles over any input. Control everything from this page.",
+    test: "Test overlay", testSent: "Look at the TV: a test message shows for 5 seconds.",
+    testNoOverlay: "The overlay is not attached. Grant the overlay permission over ADB (see README).",
     playback: "Playback clock", play: "▶ Play", pause: "❚❚ Pause", setTime: "Set time",
     clockHint: "Press Play when the video starts. If it drifts, set the time to what your player shows.",
     find: "Find subtitles", queryPh: "Movie or series title", season: "Season", episode: "Episode",
@@ -126,6 +131,8 @@ const T = {
   },
   zh: {
     tagline: "在任意输入源上显示字幕，所有操作都在这个页面完成。",
+    test: "测试悬浮窗显示", testSent: "请看电视：测试文字会显示 5 秒。",
+    testNoOverlay: "悬浮窗未生效，请通过 ADB 授予悬浮窗权限（见 README）。",
     playback: "播放计时", play: "▶ 开始", pause: "❚❚ 暂停", setTime: "设为此时间",
     clockHint: "视频开始时按「开始」。如果有偏差，把时间设为播放器上显示的时间。",
     find: "搜索字幕", queryPh: "电影或剧集名称", season: "季", episode: "集",
@@ -190,6 +197,10 @@ async function loadSettings() {
   return s;
 }
 
+$("testBtn").onclick = async () => {
+  const d = await api("/test", {});
+  toast(d.overlay ? t.testSent : t.testNoOverlay);
+};
 $("toggle").onclick = async () => { await api("/clock", {action: "toggle"}); refresh(); };
 document.querySelectorAll("[data-seek]").forEach((b) => b.onclick = async () => {
   await api("/clock", {action: "seek", delta_ms: Number(b.dataset.seek)}); refresh();

@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.content.pm.ServiceInfo;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -74,7 +75,11 @@ public class OverlayService extends Service {
                 .setContentTitle(getString(R.string.service_running))
                 .setSmallIcon(R.drawable.ic_notification)
                 .build();
-        startForeground(1, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(1, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
+        } else {
+            startForeground(1, n);
+        }
 
         addOverlay();
         server = new HttpServer(PORT, this::handle);
@@ -195,6 +200,9 @@ public class OverlayService extends Service {
                 }
                 return HttpServer.Response.json(200, ok());
             }
+            case "POST /test":
+                showNotice(getString(R.string.overlay_test), 5000);
+                return HttpServer.Response.json(200, ok().put("overlay", view != null && view.isAttachedToWindow()));
             case "POST /clear":
                 engine.clear();
                 return HttpServer.Response.json(200, ok());
@@ -209,8 +217,7 @@ public class OverlayService extends Service {
                 long ms = r.json().getLong("offset_ms");
                 engine.setOffset(ms);
                 if (r.query.containsKey("notify")) {
-                    notice = getString(R.string.offset_notice, ms / 1000.0);
-                    noticeUntil = SystemClock.elapsedRealtime() + 2000;
+                    showNotice(getString(R.string.offset_notice, ms / 1000.0), 2000);
                 }
                 return HttpServer.Response.json(200, ok());
             }
@@ -228,6 +235,12 @@ public class OverlayService extends Service {
             default:
                 return HttpServer.Response.error(404, "not found: " + route);
         }
+    }
+
+    /** Temporarily shows a message in place of the current subtitle, even if none is loaded. */
+    private void showNotice(String text, long durationMs) {
+        notice = text;
+        noticeUntil = SystemClock.elapsedRealtime() + durationMs;
     }
 
     private String apiKey() throws Exception {
