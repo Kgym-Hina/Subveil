@@ -17,6 +17,7 @@ final class SubtitleEngine {
     private long anchorClockMs;
     private boolean playing;
     private boolean visible = true;
+    private boolean idle;
 
     synchronized void load(String n, List<Cue> c) {
         name = n;
@@ -67,13 +68,19 @@ final class SubtitleEngine {
         visible = v;
     }
 
+    /** True while the source has nothing playing; the clock is stopped and no text is shown. */
+    synchronized void setIdle(boolean v) {
+        if (v && !idle) sync(positionMs(), false);
+        idle = v;
+    }
+
     synchronized long positionMs() {
         return anchorPosMs + (playing ? SystemClock.elapsedRealtime() - anchorClockMs : 0);
     }
 
     /** Positive offsets show subtitles later. */
     synchronized String currentText() {
-        if (!visible || cues.isEmpty()) return "";
+        if (!visible || idle || cues.isEmpty()) return "";
         long t = positionMs() - offsetMs;
         StringBuilder sb = new StringBuilder();
         for (Cue c : cues) {

@@ -86,9 +86,12 @@ final class AppleTvSync {
         JSONObject s = new JSONObject(atv.status());
         lastStatus = s;
         JSONObject p = s.optJSONObject("playing");
+        boolean follow = prefs.getBoolean("atv_auto_sync", true);
+        String state = p == null ? "idle" : p.optString("state");
+        boolean stopped = state.equals("idle") || state.equals("stopped");
+        if (follow && s.optString("status").equals("connected")) engine.setIdle(stopped);
         if (p == null) return;
-        String state = p.optString("state");
-        if (prefs.getBoolean("atv_auto_sync", true) && p.has("position_ms")) {
+        if (follow && !stopped && p.has("position_ms")) {
             boolean playing = state.equals("playing");
             long pos = p.getLong("position_ms");
             if (playing != engine.isPlaying() || Math.abs(engine.positionMs() - pos) > MAX_DRIFT_MS) {
