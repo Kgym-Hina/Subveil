@@ -102,6 +102,11 @@ public class OverlayService extends Service {
             public void loaded(String name, List<Cue> cues) {
                 loadSubtitle(name, cues);
             }
+
+            @Override
+            public void notice(boolean started) {
+                showNotice(getString(started ? R.string.playback_started : R.string.playback_ended), 4000);
+            }
         });
         appleTv.start();
     }

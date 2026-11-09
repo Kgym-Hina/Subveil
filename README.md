@@ -47,8 +47,10 @@ Both editions use different package names (`io.github.kgymhina.subveil` and `io.
    See [Grant the overlay permission](#grant-the-overlay-permission-required-once-per-tv) for details.
 2. Open `http://<tv-ip>:8765` on your phone or computer and press **Test overlay** to check that text appears on the TV.
 3. Under **Settings**, save your OpenSubtitles API key and languages (e.g. `zh-cn,en`).
-4. If you watch on an Apple TV, press **Find Apple TVs** under **Apple TV**, press **Pair** and enter the PIN shown on the Apple TV. From then on Subveil follows what the Apple TV plays: it loads subtitles for each new title and keeps them in time.
+4. If you watch on an Apple TV, press **Find Apple TVs** under **Apple TV**, press **Pair** and enter the PIN shown on the Apple TV. From then on Subveil follows what the Apple TV plays: it loads subtitles for each new title and keeps them in time. A short notice appears on screen when playback starts and when it ends, and subtitles hide when playback stops.
 5. For other sources, search for the title, press **Use** on a result, then press **Play** when the video starts. Fix any drift with the jump buttons, **Set time** or the offset.
+
+To correct timing, use the offset buttons or type a number of seconds (for example `-2.5`) and press **Set offset**. Offsets are remembered per subtitle file.
 
 Languages use OpenSubtitles codes. For Chinese, use `zh-cn` (Simplified), `zh-tw` (Traditional), `ze` (Chinese and English bilingual) or `zh-ca` (Cantonese).
 

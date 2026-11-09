@@ -8,4 +8,6 @@
     <string name="main_address">Upload page / Home Assistant address:</string>
     <string name="overlay_test">Subveil overlay test\nIf you can read this, subtitles will appear here.</string>
     <string name="offset_notice">Subtitle offset %1$+.1f s</string>
+    <string name="playback_started">Subveil: playback detected, subtitles are on</string>
+    <string name="playback_ended">Subveil: playback ended</string>
 </resources>

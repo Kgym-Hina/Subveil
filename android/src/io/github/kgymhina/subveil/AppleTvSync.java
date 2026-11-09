@@ -24,6 +24,8 @@ final class AppleTvSync {
         List<String> languages();
 
         void loaded(String name, List<Cue> cues);
+
+        void notice(boolean started);
     }
 
     private final AppleTv atv;
@@ -33,6 +35,7 @@ final class AppleTvSync {
     private volatile boolean running;
     private volatile String lastKey = "";
     private volatile boolean forceSearch;
+    private boolean wasActive;
     private volatile String autoMessage = "";
     private volatile JSONObject lastStatus = new JSONObject();
     private Thread thread;
@@ -89,7 +92,11 @@ final class AppleTvSync {
         boolean follow = prefs.getBoolean("atv_auto_sync", true);
         String state = p == null ? "idle" : p.optString("state");
         boolean stopped = state.equals("idle") || state.equals("stopped");
-        if (follow && s.optString("status").equals("connected")) engine.setIdle(stopped);
+        if (follow && s.optString("status").equals("connected")) {
+            engine.setIdle(stopped);
+            if (wasActive == stopped) subtitles.notice(!stopped);
+            wasActive = !stopped;
+        }
         if (p == null) return;
         if (follow && !stopped && p.has("position_ms")) {
             boolean playing = state.equals("playing");
