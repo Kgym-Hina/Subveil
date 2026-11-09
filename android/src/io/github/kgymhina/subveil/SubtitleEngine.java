@@ -23,6 +23,14 @@ final class SubtitleEngine {
         cues = c;
     }
 
+    synchronized String name() {
+        return name;
+    }
+
+    synchronized long offsetMs() {
+        return offsetMs;
+    }
+
     synchronized void clear() {
         name = "";
         cues = new ArrayList<>();

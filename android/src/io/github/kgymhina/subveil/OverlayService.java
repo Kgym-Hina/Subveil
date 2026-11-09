@@ -100,7 +100,7 @@ public class OverlayService extends Service {
 
             @Override
             public void loaded(String name, List<Cue> cues) {
-                engine.load(name, cues);
+                loadSubtitle(name, cues);
             }
         });
         appleTv.start();
@@ -177,7 +177,7 @@ public class OverlayService extends Service {
                 String name = r.query.containsKey("name") ? r.query.get("name") : "subtitle";
                 List<Cue> cues = SubtitleParser.parse(SubtitleParser.decode(r.body));
                 if (cues.isEmpty()) return HttpServer.Response.error(400, "no cues found");
-                engine.load(name, cues);
+                loadSubtitle(name, cues);
                 Log.i(TAG, "loaded " + name + " (" + cues.size() + " cues)");
                 return HttpServer.Response.json(200, ok().put("cues", cues.size()));
             }
@@ -207,7 +207,8 @@ public class OverlayService extends Service {
                 OpenSubtitles.Download d = OpenSubtitles.download(apiKey(), r.json().getLong("file_id"));
                 List<Cue> cues = SubtitleParser.parse(SubtitleParser.decode(d.data));
                 if (cues.isEmpty()) return HttpServer.Response.error(400, "no cues found in " + d.name);
-                engine.load(d.name, cues);
+                loadSubtitle(d.name, cues);
+                if (appleTv != null) appleTv.rememberChoice(r.json().getLong("file_id"));
                 return HttpServer.Response.json(200, ok().put("name", d.name).put("cues", cues.size()));
             }
             case "POST /clock": {
@@ -259,6 +260,7 @@ public class OverlayService extends Service {
             case "POST /offset": {
                 long ms = r.json().getLong("offset_ms");
                 engine.setOffset(ms);
+                saveOffset(ms);
                 if (r.query.containsKey("notify")) {
                     showNotice(getString(R.string.offset_notice, ms / 1000.0), 2000);
                 }
@@ -278,6 +280,34 @@ public class OverlayService extends Service {
             default:
                 return HttpServer.Response.error(404, "not found: " + route);
         }
+    }
+
+    /**
+     * Loads cues and restores the offset saved for this file. A file seen for the first time
+     * starts from the offset last used for the same Apple TV title, since releases of one
+     * title are often close. The Home Assistant edition sends its own offset instead.
+     */
+    private void loadSubtitle(String name, List<Cue> cues) {
+        engine.load(name, cues);
+        if (!BuildInfo.STANDALONE) return;
+        String title = appleTv == null ? "" : appleTv.titleKey();
+        long offset = 0;
+        if (prefs.contains("offset_file:" + name)) {
+            offset = prefs.getLong("offset_file:" + name, 0);
+        } else if (!title.isEmpty()) {
+            offset = prefs.getLong("offset_title:" + title, 0);
+        }
+        engine.setOffset(offset);
+    }
+
+    private void saveOffset(long ms) {
+        if (!BuildInfo.STANDALONE) return;
+        SharedPreferences.Editor e = prefs.edit();
+        String name = engine.name();
+        if (!name.isEmpty()) e.putLong("offset_file:" + name, ms);
+        String title = appleTv == null ? "" : appleTv.titleKey();
+        if (!title.isEmpty()) e.putLong("offset_title:" + title, ms);
+        e.apply();
     }
 
     /** Temporarily shows a message in place of the current subtitle, even if none is loaded. */

@@ -113,6 +113,17 @@ final class AppleTvSync {
         Integer episode = p.isNull("episode") ? null : p.optInt("episode");
         try {
             String key = subtitles.apiKey();
+            long chosen = prefs.getLong("choice:" + lastKey, -1);
+            if (chosen >= 0) {
+                OpenSubtitles.Download d = OpenSubtitles.download(key, chosen);
+                List<Cue> cues = SubtitleParser.parse(SubtitleParser.decode(d.data));
+                if (!cues.isEmpty()) {
+                    subtitles.loaded(d.name, cues);
+                    autoMessage = "loaded your earlier choice " + d.name + " for " + query;
+                    Log.i(TAG, "auto search: " + autoMessage);
+                    return;
+                }
+            }
             JSONArray results = OpenSubtitles.search(key, query, subtitles.languages(), season, episode);
             if (results.length() == 0) {
                 autoMessage = "no subtitles found for " + query;
@@ -165,8 +176,19 @@ final class AppleTvSync {
         atv.connect(id, address, creds);
     }
 
+    /** Identifies the title the Apple TV is playing, or "" if none. */
+    String titleKey() {
+        return lastKey;
+    }
+
+    /** Remembers a subtitle the user picked so it is used the next time this title plays. */
+    void rememberChoice(long fileId) {
+        if (!lastKey.isEmpty()) prefs.edit().putLong("choice:" + lastKey, fileId).apply();
+    }
+
     /** Searches again for the current title on the next poll, e.g. after the languages changed. */
     void reload() {
+        if (!lastKey.isEmpty()) prefs.edit().remove("choice:" + lastKey).apply();
         lastKey = "";
         autoMessage = "";
         forceSearch = true;
