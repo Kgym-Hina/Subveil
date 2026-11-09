@@ -90,6 +90,10 @@ android {
     }
 }
 
+dependencies {
+    "standaloneImplementation"("com.google.zxing:core:3.5.3")
+}
+
 androidComponents {
     beforeVariants { variant ->
         if (withPython && variant.productFlavors.any { it.second == "ha" }) variant.enable = false

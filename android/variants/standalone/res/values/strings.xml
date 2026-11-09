@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Subveil Standalone</string>
-    <string name="main_address">Open this address on your phone or computer to control subtitles:</string>
+    <string name="main_address">Open this address on your phone or computer to control subtitles, or scan the QR code:</string>
 </resources>
