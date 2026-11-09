@@ -187,8 +187,11 @@ public class OverlayService extends Service {
                 JSONObject o = r.json();
                 SharedPreferences.Editor e = prefs.edit();
                 if (o.has("api_key")) e.putString("os_api_key", o.getString("api_key").trim());
+                boolean langsChanged = o.has("languages")
+                        && !o.getString("languages").trim().equals(prefs.getString("languages", "en"));
                 if (o.has("languages")) e.putString("languages", o.getString("languages").trim());
                 e.apply();
+                if (langsChanged && appleTv != null) appleTv.reload();
                 return HttpServer.Response.json(200, settingsJson());
             }
             case "POST /search": {
@@ -230,6 +233,9 @@ public class OverlayService extends Service {
             }
             case "POST /atv/pair/finish":
                 appleTv.pairFinish(r.json().getString("pin"));
+                return HttpServer.Response.json(200, appleTv.status());
+            case "POST /atv/reload":
+                appleTv.reload();
                 return HttpServer.Response.json(200, appleTv.status());
             case "POST /atv/forget":
                 appleTv.forget();
@@ -289,7 +295,11 @@ public class OverlayService extends Service {
     private List<String> languages() {
         List<String> out = new ArrayList<>();
         for (String l : prefs.getString("languages", "en").split(",")) {
-            if (!l.trim().isEmpty()) out.add(l.trim().toLowerCase(Locale.ROOT));
+            String code = l.trim().toLowerCase(Locale.ROOT);
+            // OpenSubtitles has no plain "zh"; Simplified Chinese is "zh-cn".
+            if (code.equals("zh") || code.equals("cn") || code.equals("zh-hans")) code = "zh-cn";
+            if (code.equals("zh-hant")) code = "zh-tw";
+            if (!code.isEmpty() && !out.contains(code)) out.add(code);
         }
         return out;
     }

@@ -42,6 +42,7 @@ li .label{flex:1;font-size:14px;word-break:break-all}
     <div class="now" id="atvNow" style="display:none"></div>
     <div class="row">
       <button id="atvScan" data-t="atvScan"></button>
+      <button id="atvReload" data-t="atvReload" style="display:none"></button>
       <button id="atvForget" data-t="atvForget" style="display:none"></button>
     </div>
     <ul id="atvDevices"></ul>
@@ -153,7 +154,7 @@ const T = {
     keySet: (h) => "API key saved (" + h + ")", loaded: (n, c) => "Loaded: " + n + " (" + c + " lines)",
     none: "No subtitle loaded.", fail: "Failed: ", needKey: "Save an OpenSubtitles API key first.",
     atvScan: "Find Apple TVs", atvScanning: "Searching the network…", atvNone: "No Apple TV found.",
-    atvPairBtn: "Pair", atvPin: "PIN on the Apple TV:", atvPair: "Confirm", atvForget: "Unpair",
+    atvPairBtn: "Pair", atvPin: "PIN on the Apple TV:", atvPair: "Confirm", atvForget: "Unpair", atvReload: "Reload subtitles", atvReloading: "Searching again for the current title…",
     atvStarting: "Starting pairing…", atvPaired: "Paired",
     atvAutoSync: "Follow the Apple TV's playback position", atvAutoSearch: "Load subtitles automatically when the title changes",
     atvHint: "Subveil reads what the Apple TV is playing over the network. Pair once; it reconnects by itself.",
@@ -178,7 +179,7 @@ const T = {
     keySet: (h) => "已保存 API Key（" + h + "）", loaded: (n, c) => "已加载：" + n + "（" + c + " 句）",
     none: "尚未加载字幕。", fail: "失败：", needKey: "请先保存 OpenSubtitles API Key。",
     atvScan: "查找 Apple TV", atvScanning: "正在搜索局域网…", atvNone: "没有找到 Apple TV。",
-    atvPairBtn: "配对", atvPin: "Apple TV 上显示的 PIN：", atvPair: "确认", atvForget: "取消配对",
+    atvPairBtn: "配对", atvPin: "Apple TV 上显示的 PIN：", atvPair: "确认", atvForget: "取消配对", atvReload: "重新加载字幕", atvReloading: "正在为当前影片重新搜索字幕…",
     atvStarting: "正在开始配对…", atvPaired: "配对成功",
     atvAutoSync: "跟随 Apple TV 的播放进度", atvAutoSearch: "切换影片时自动加载字幕",
     atvHint: "Subveil 通过局域网读取 Apple TV 正在播放的内容。只需配对一次，之后会自动重连。",
@@ -326,6 +327,7 @@ async function atvRefresh() {
   if (c.error) line += " (" + c.error + ")";
   $("atvState").textContent = line;
   $("atvForget").style.display = s.paired ? "" : "none";
+  $("atvReload").style.display = s.paired ? "" : "none";
   const p = c.playing;
   $("atvNow").style.display = p ? "" : "none";
   if (p) {
@@ -373,6 +375,7 @@ $("atvPinBtn").onclick = async () => {
   } catch (e) { toast(t.fail + e.message); }
   atvRefresh();
 };
+$("atvReload").onclick = async () => { await api("/atv/reload", {}); toast(t.atvReloading); atvRefresh(); };
 $("atvForget").onclick = async () => { await api("/atv/forget", {}); atvRefresh(); };
 $("atvAutoSync").onchange = (e) => api("/atv/options", {auto_sync: e.target.checked});
 $("atvAutoSearch").onchange = (e) => api("/atv/options", {auto_search: e.target.checked});

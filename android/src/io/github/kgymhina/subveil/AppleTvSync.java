@@ -32,6 +32,7 @@ final class AppleTvSync {
     private final Subtitles subtitles;
     private volatile boolean running;
     private volatile String lastKey = "";
+    private volatile boolean forceSearch;
     private volatile String autoMessage = "";
     private volatile JSONObject lastStatus = new JSONObject();
     private Thread thread;
@@ -100,7 +101,8 @@ final class AppleTvSync {
         String key = series + "|" + title + "|" + p.opt("season") + "|" + p.opt("episode");
         if (!key.equals(lastKey)) {
             lastKey = key;
-            if (prefs.getBoolean("atv_auto_search", true)) autoSearch(p);
+            if (prefs.getBoolean("atv_auto_search", true) || forceSearch) autoSearch(p);
+            forceSearch = false;
         }
     }
 
@@ -161,6 +163,13 @@ final class AppleTvSync {
                 .putString("atv_creds", creds).apply();
         lastKey = "";
         atv.connect(id, address, creds);
+    }
+
+    /** Searches again for the current title on the next poll, e.g. after the languages changed. */
+    void reload() {
+        lastKey = "";
+        autoMessage = "";
+        forceSearch = true;
     }
 
     void forget() throws Exception {
